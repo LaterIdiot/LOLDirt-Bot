@@ -17,8 +17,8 @@
   },
   "homepage": "https://github.com/LaterIdiot/LOLDirt-Bot#readme",
   "dependencies": {
+    "@zikeji/hypixel": "^2.1.1",
     "discord.js": "^12.5.1",
-    "dotenv": "^8.2.0",
-    "hypixel-api-reborn": "^5.1.1"
+    "dotenv": "^8.2.0"
   }
 }
