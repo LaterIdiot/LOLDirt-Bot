@@ -8,16 +8,17 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Nayan-Bhut/discord.js-template.git"
+    "url": "git+https://github.com/LaterIdiot/LOLDirt-Bot.git"
   },
   "author": "",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/Nayan-Bhut/discord.js-template/issues"
+    "url": "https://github.com/LaterIdiot/LOLDirt-Bot/issues"
   },
-  "homepage": "https://github.com/Nayan-Bhut/discord.js-template#readme",
+  "homepage": "https://github.com/LaterIdiot/LOLDirt-Bot#readme",
   "dependencies": {
     "discord.js": "^12.5.1",
-    "dotenv": "^8.2.0"
+    "dotenv": "^8.2.0",
+    "hypixel-api-reborn": "^5.1.1"
   }
 }

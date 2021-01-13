@@ -5,8 +5,9 @@ const fs = require('fs');
 const Discord = require('discord.js');
 const prefix = process.env.PREFIX;
 const token = process.env.BOT_TOKEN;
+const hypixelAPIKey = process.env.HYPIXEL_API_KEY;
 
-module.exports.prefix = prefix;
+module.exports = { prefix, hypixelAPIKey }
 
 const client = new Discord.Client();
 client.commands = new Discord.Collection();

@@ -1,4 +1,4 @@
-const { prefix } = require("../index.js");
+const { prefix } = require("../index");
 
 module.exports = {
 	name: 'help',
