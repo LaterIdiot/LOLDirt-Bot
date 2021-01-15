@@ -6,7 +6,9 @@ async function findPlayerData(username) {
 		.then((data) => {
 			return data;
 		})
-		.catch(() => {throw "Player does not exist."});
+		.catch(() => {
+			return null;
+		});
 
 	return playerData;
 }

@@ -21,16 +21,16 @@ module.exports = {
 		const sentMsg = await message.channel.send(loadingEmbed);
 
 		const playerData = await findPlayerData(args.shift())
-			.catch((err) => {
-				const playerError = new Discord.MessageEmbed({
-					color: "#ff0000",
-					title: "Error:",
-					description: err
-				});
 
-				return sentMsg.edit(playerError);
+		if (!playerData) {
+			const playerError = new Discord.MessageEmbed({
+				color: "#ff0000",
+				title: "Error:",
+				description: "Player does not exist."
 			});
 
+			return sentMsg.edit(playerError);
+		};
 
 		const player = await hypixel.player.uuid(playerData.id);
 
@@ -59,7 +59,7 @@ module.exports = {
 		};
 
 		function objectiveMet(objective, goal) {
-			return objective >= goal ? "🟢" : "🔴";
+			return objective >= goal ? "✔ " : "❌";
 		};
 
 		const requirement = {
@@ -78,16 +78,16 @@ module.exports = {
 		const bedwarsFinalKills = player.stats ? player.stats.Bedwars ? player.stats.Bedwars.final_kills_bedwars || 0 : 0 : 0;
 		const bedwarsFinalDeaths = player.stats ? player.stats.Bedwars ? player.stats.Bedwars.final_deaths_bedwars || 0 : 0 : 0;
 		const skywars = player.stats ? player.stats.SkyWars || null : null;
-		const skywarsKills = skywars.kills_solo || 0 + skywars.kills_team || 0 + skywars.kills_mega || 0 + skywars.kills_mega_doubles || 0;
-		const skywarsDeaths = skywars.deaths_solo || 0 + skywars.deaths_team || 0 + skywars.deaths_mega || 0 + skywars.deaths_mega_doubles || 0;
+		const skywarsKills = (skywars ? skywars.kills_solo || 0 : 0) + (skywars ? skywars.kills_team || 0 : 0) + (skywars ? skywars.kills_mega || 0 : 0) + (skywars ? skywars.kills_mega_doubles || 0 : 0);
+		const skywarsDeaths = (skywars ? skywars.deaths_solo || 0 : 0) + (skywars ? skywars.deaths_team || 0 : 0) + (skywars ? skywars.deaths_mega || 0 : 0) + (skywars ? skywars.deaths_mega_doubles || 0 : 0);
 
 		const playerStats = {
 			basic: {
 				networkLevel: Math.floor(Math.sqrt(12.25 + 0.0008 * networkExp) - 2.5),
 				bedwarsLevel: player.achievements ? player.achievements.bedwars_level || 0 : 0,
-				bedwarsFKDR: bedwarsFinalKills / bedwarsFinalDeaths === Infinity ? 0 : (bedwarsFinalKills / bedwarsFinalDeaths).toFixed(2),
-				skywarsLevel: skywars.skywars_experience ? findSkywarsLevel(skywars.skywars_experience) : 0,
-				skywarsKDR: skywarsKills / skywarsDeaths === Infinity ? 0 : (skywarsKills / skywarsDeaths).toFixed(2),
+				bedwarsFKDR: bedwarsFinalKills / bedwarsFinalDeaths ? (bedwarsFinalKills / bedwarsFinalDeaths).toFixed(2) : 0,
+				skywarsLevel: skywars ? skywars.skywars_experience ? findSkywarsLevel(skywars.skywars_experience) : 0 : 0,
+				skywarsKDR: skywarsKills / skywarsDeaths ? (skywarsKills / skywarsDeaths).toFixed(2) : 0,
 				duelsWins: player.stats ? player.stats.Duels ? player.stats.Duels.wins || 0 : 0 : 0,
 				achievementPoints: player.achievementPoints || 0
 			}
@@ -110,7 +110,7 @@ module.exports = {
 		};
 
 		const totalRequirementsMet = {
-			basic: Object.values(requirementMet.basic).indexOf("🔴") >= 0 ? "🔴" : "🟢"
+			basic: Object.values(requirementMet.basic).indexOf("❌") >= 0 ? "❌" : "✅ "
 		}
 
 		const statCheckEmbed = new Discord.MessageEmbed({
@@ -120,13 +120,7 @@ module.exports = {
 			fields: [
 				{
 					name: `${totalRequirementsMet.basic} Basic Requirements:`,
-					value: `${requirementMet.basic.networkLevel} Hypixel Network Level: ${playerStats.basic.networkLevel}
-					\n${requirementMet.basic.bedwarsLevel} Bedwars Level: ${playerStats.basic.bedwarsLevel}
-					\n${requirementMet.basic.bedwarsFKDR} Bedwars FKDR: ${playerStats.basic.bedwarsFKDR}
-					\n${requirementMet.basic.skywarsLevel} Skywars Level: ${playerStats.basic.skywarsLevel}
-					\n${requirementMet.basic.skywarsKDR} Skywars KDR: ${playerStats.basic.skywarsKDR}
-					\n${requirementMet.basic.duelsWins} Duels Wins: ${playerStats.basic.duelsWins}
-					\n${requirementMet.basic.achievementPoints} Achievement Points: ${playerStats.basic.achievementPoints}`
+					value: `\`\`\`\n${requirementMet.basic.networkLevel}Hypixel Network Level: ${playerStats.basic.networkLevel}\n${requirementMet.basic.bedwarsLevel}Bedwars Level: ${playerStats.basic.bedwarsLevel}\n${requirementMet.basic.bedwarsFKDR}Bedwars FKDR: ${playerStats.basic.bedwarsFKDR}\n${requirementMet.basic.skywarsLevel}Skywars Level: ${playerStats.basic.skywarsLevel}\n${requirementMet.basic.skywarsKDR}Skywars KDR: ${playerStats.basic.skywarsKDR}\n${requirementMet.basic.duelsWins}Duels Wins: ${playerStats.basic.duelsWins}\n${requirementMet.basic.achievementPoints}Achievement Points: ${playerStats.basic.achievementPoints}\`\`\``
 				}
 			]
 		});
