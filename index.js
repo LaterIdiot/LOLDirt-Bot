@@ -1,49 +1,66 @@
 // module that allows dotenv files to be read
 require("dotenv").config();
 
-const fs = require('fs');
-const Discord = require('discord.js');
+// loads node modules
+const fs = require("fs");
+const Discord = require("discord.js");
+
+// loads all the config information for bot and important info
 const prefix = process.env.PREFIX;
 const token = process.env.BOT_TOKEN;
 const hypixelAPIKey = process.env.HYPIXEL_API_KEY;
 
-module.exports = { prefix, hypixelAPIKey }
+// makes prefix and hypixelAPIKey available to whoever refrences this file
+module.exports = { prefix, hypixelAPIKey };
 
+// creates a discord client which will be the bot
 const client = new Discord.Client();
+
+// initializes a collection or a map
 client.commands = new Discord.Collection();
 
-const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('.js'));
+// puts all file names that end with .js in an array
+const commandFiles = fs
+	.readdirSync("./commands")
+	.filter((file) => file.endsWith(".js"));
 
+// goes through each element of commandFiles array and stores the refrence to that file in client.commands collection
 for (const file of commandFiles) {
 	const command = require(`./commands/${file}`);
 	client.commands.set(command.name, command);
 }
 
+// sets new collection for cooldown
 const cooldowns = new Discord.Collection();
 
-client.once('ready', () => {
-	console.log('Ready!');
+// sends console log ones bot is ready
+client.once("ready", () => {
+	console.log("Ready!");
 });
 
-client.on('message', message => {
+
+client.on("message", (message) => {
 	if (!message.content.startsWith(prefix) || message.author.bot) return;
 
 	const args = message.content.slice(prefix.length).trim().split(/ +/);
 	const commandName = args.shift().toLowerCase();
 
-	const command = client.commands.get(commandName)
-		|| client.commands.find(cmd => cmd.aliases && cmd.aliases.includes(commandName));
+	const command =
+		client.commands.get(commandName) ||
+		client.commands.find(
+			(cmd) => cmd.aliases && cmd.aliases.includes(commandName)
+		);
 
 	if (!command) return;
 
-	if (command.guildOnly && message.channel.type === 'dm') {
-		return message.reply('I can\'t execute that command inside DMs!');
+	if (command.guildOnly && message.channel.type === "dm") {
+		return message.reply("I can't execute that command inside DMs!");
 	}
 
 	if (command.permissions) {
 		const authorPerms = message.channel.permissionsFor(message.author);
 		if (!authorPerms || !authorPerms.has(command.permissions)) {
-			return message.reply('You can not do this!');
+			return message.reply("You can not do this!");
 		}
 	}
 
@@ -69,8 +86,8 @@ client.on('message', message => {
 		const expirationTime = timestamps.get(message.author.id) + cooldownAmount;
 
 		if (now < expirationTime) {
-			const timeLeft = (expirationTime - now) / 1000;
-			return message.reply(`please wait ${timeLeft.toFixed(1)} more second(s) before reusing the \`${command.name}\` command.`);
+			const timeLeft = ((expirationTime - now) / 1000).toFixed(1);
+			return message.reply(`please wait ${timeLeft} more second(s) before reusing the \`${command.name}\` command.`);
 		}
 	}
 
@@ -81,7 +98,7 @@ client.on('message', message => {
 		command.execute(message, args);
 	} catch (error) {
 		console.error(error);
-		message.reply('there was an error trying to execute that command!');
+		message.reply("there was an error trying to execute that command!");
 	}
 });
 
