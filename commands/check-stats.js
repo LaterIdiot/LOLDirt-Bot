@@ -4,6 +4,151 @@ const Discord = require("discord.js");
 const { Client } = require("@zikeji/hypixel");
 const hypixel = new Client(hypixelAPIKey);
 
+function findSkywarsLevel(xp) {
+	const xps = [0, 20, 70, 150, 250, 500, 1000, 2000, 3500, 6000, 10000, 15000];
+
+	if (xp >= 15000) {
+		return ((xp - 15000) / 10000 + 12).toFixed();
+	} else {
+		for (let i = 0; i < xps.length; i++) {
+			if (xp < xps[i]) {
+				return i;
+			}
+		}
+	}
+}
+
+function sb(skyblockProfilesList) {
+	if (!skyblockProfilesList) return { skillAverage: 0, slayersXp: 0 };
+
+	const leveling_xp = {
+		1: 50,
+		2: 125,
+		3: 200,
+		4: 300,
+		5: 500,
+		6: 750,
+		7: 1000,
+		8: 1500,
+		9: 2000,
+		10: 3500,
+		11: 5000,
+		12: 7500,
+		13: 10000,
+		14: 15000,
+		15: 20000,
+		16: 30000,
+		17: 50000,
+		18: 75000,
+		19: 100000,
+		20: 200000,
+		21: 300000,
+		22: 400000,
+		23: 500000,
+		24: 600000,
+		25: 700000,
+		26: 800000,
+		27: 900000,
+		28: 1000000,
+		29: 1100000,
+		30: 1200000,
+		31: 1300000,
+		32: 1400000,
+		33: 1500000,
+		34: 1600000,
+		35: 1700000,
+		36: 1800000,
+		37: 1900000,
+		38: 2000000,
+		39: 2100000,
+		40: 2200000,
+		41: 2300000,
+		42: 2400000,
+		43: 2500000,
+		44: 2600000,
+		45: 2750000,
+		46: 2900000,
+		47: 3100000,
+		48: 3400000,
+		49: 3700000,
+		50: 4000000,
+		51: 4300000,
+		52: 4600000,
+		53: 4900000,
+		54: 5200000,
+		55: 5500000,
+		56: 5800000,
+		57: 6100000,
+		58: 6400000,
+		59: 6700000,
+		60: 7000000,
+	};
+
+	function findSkillLevel(xp, skillCap) {
+		let level = 1;
+
+		for (; level <= skillCap && xp - leveling_xp[level] >= 0; level++) {
+			xp -= leveling_xp[level];
+		}
+
+		level--;
+
+		return level;
+	}
+
+	let skillAverageList = [];
+	let slayersXpList = [];
+
+	for (let x of skyblockProfilesList) {
+		const profile = x.members[playerData.id];
+
+		let skills = [
+			findSkillLevel(
+				profile.experience_skill_farming || 0,
+				50 +
+					(profile.jacob2
+						? profile.jacob2.perks
+							? profile.jacob2.perks.farming_level_cap || 0
+							: 0
+						: 0)
+			),
+			findSkillLevel(profile.experience_skill_mining || 0, 60),
+			findSkillLevel(profile.experience_skill_combat || 0, 50),
+			findSkillLevel(profile.experience_skill_foraging || 0, 50),
+			findSkillLevel(profile.experience_skill_fishing || 0, 50),
+			findSkillLevel(profile.experience_skill_enchanting || 0, 60),
+			findSkillLevel(profile.experience_skill_alchemy || 0, 50),
+			findSkillLevel(profile.experience_skill_taming || 0, 50),
+		];
+
+		let slayers = [
+			profile.slayer_bosses
+				? profile.slayer_bosses.zombie
+					? profile.slayer_bosses.zombie.xp || 0
+					: 0
+				: 0,
+			profile.slayer_bosses
+				? profile.slayer_bosses.spider
+					? profile.slayer_bosses.spider.xp || 0
+					: 0
+				: 0,
+			profile.slayer_bosses
+				? profile.slayer_bosses.wolf
+					? profile.slayer_bosses.wolf.xp || 0
+					: 0
+				: 0,
+		];
+
+		slayersXpList.push(slayers.reduce((a, b) => a + b, 0));
+		skillAverageList.push(skills.reduce((a, b) => a + b, 0) / 8);
+	}
+
+	const skillAverage = Math.max(...skillAverageList);
+	const slayersXp = Math.max(...slayersXpList);
+
+	return { skillAverage, slayersXp };
+}
+
 module.exports = {
 	name: "check-stats",
 	description:
@@ -43,33 +188,6 @@ module.exports = {
 			});
 
 			return sentMsg.edit(playerError);
-		}
-
-		function findSkywarsLevel(xp) {
-			const xps = [
-				0,
-				20,
-				70,
-				150,
-				250,
-				500,
-				1000,
-				2000,
-				3500,
-				6000,
-				10000,
-				15000,
-			];
-
-			if (xp >= 15000) {
-				return ((xp - 15000) / 10000 + 12).toFixed();
-			} else {
-				for (let i = 0; i < xps.length; i++) {
-					if (xp < xps[i]) {
-						return i;
-					}
-				}
-			}
 		}
 
 		function objectiveMet(objective, goal) {
@@ -195,125 +313,13 @@ module.exports = {
 			},
 		};
 
-		function skyblock() {
-			const skyblockProfilesList = await hypixel.skyblock.profiles.uuid(playerData.id);
+		const skyblockProfilesList = await hypixel.skyblock.profiles
+			.uuid(playerData.id)
+			.catch(() => {
+				return null;
+			});
 
-			if (!skyblockProfilesList) return { skillAverage: 0, slayersXp: 0 };
-
-			const leveling_xp = {
-				1: 50,
-				2: 125,
-				3: 200,
-				4: 300,
-				5: 500,
-				6: 750,
-				7: 1000,
-				8: 1500,
-				9: 2000,
-				10: 3500,
-				11: 5000,
-				12: 7500,
-				13: 10000,
-				14: 15000,
-				15: 20000,
-				16: 30000,
-				17: 50000,
-				18: 75000,
-				19: 100000,
-				20: 200000,
-				21: 300000,
-				22: 400000,
-				23: 500000,
-				24: 600000,
-				25: 700000,
-				26: 800000,
-				27: 900000,
-				28: 1000000,
-				29: 1100000,
-				30: 1200000,
-				31: 1300000,
-				32: 1400000,
-				33: 1500000,
-				34: 1600000,
-				35: 1700000,
-				36: 1800000,
-				37: 1900000,
-				38: 2000000,
-				39: 2100000,
-				40: 2200000,
-				41: 2300000,
-				42: 2400000,
-				43: 2500000,
-				44: 2600000,
-				45: 2750000,
-				46: 2900000,
-				47: 3100000,
-				48: 3400000,
-				49: 3700000,
-				50: 4000000,
-				51: 4300000,
-				52: 4600000,
-				53: 4900000,
-				54: 5200000,
-				55: 5500000,
-				56: 5800000,
-				57: 6100000,
-				58: 6400000,
-				59: 6700000,
-				60: 7000000,
-			};
-
-			function findSkillLevel(xp, skillCap) {
-				let level = 1;
-
-				for (; level <= skillCap && xp - leveling_xp[level] >= 0; level++) {
-					xp -= leveling_xp[level];
-				}
-
-				level--;
-
-				return level;
-			};
-
-			let skillAverageList = [];
-			let slayersXpList = [];
-
-			for (let x of skyblockProfilesList) {
-				const profile = x.members[playerData.id];
-
-				const skills = [
-					findSkillLevel(
-						profile.experience_skill_farming || 0,
-						50 +
-							(profile.jacob2
-								? profile.jacob2.perks
-									? profile.jacob2.perks.farming_level_cap || 0
-									: 0
-								: 0)
-					),
-					findSkillLevel(profile.experience_skill_mining || 0, 60),
-					findSkillLevel(profile.experience_skill_combat || 0, 50),
-					findSkillLevel(profile.experience_skill_foraging || 0, 50),
-					findSkillLevel(profile.experience_skill_fishing || 0, 50),
-					findSkillLevel(profile.experience_skill_enchanting || 0, 60),
-					findSkillLevel(profile.experience_skill_alchemy || 0, 50),
-					findSkillLevel(profile.experience_skill_taming || 0, 50),
-				];
-
-				const slayers = [
-					profile.slayer_bosses ? profile.slayer_bosses.zombie ? profile.slayer_bosses.zombie.xp || 0 : 0 : 0,
-					profile.slayer_bosses ? profile.slayer_bosses.spider ? profile.slayer_bosses.spider.xp || 0 : 0 : 0,
-					profile.slayer_bosses ? profile.slayer_bosses.wolf ? profile.slayer_bosses.wolf.xp || 0 : 0 : 0
-				]
-
-				slayersXpList.push(slayers.reduce((a, b) => a + b, 0));
-				skillAverageList.push(skills.reduce((a, b) => a + b, 0) / 8);
-			};
-
-			// CONTINUE FROM HERE
-			// CONTINUE FROM HERE
-			// CONTINUE FROM HERE
-		};
+		const skyblock = sb(skyblockProfilesList);
 
 		playerStats.major = {
 			bedwars: {
@@ -325,7 +331,101 @@ module.exports = {
 				wins: skywars ? skywars.wins || 0 : 0,
 				KDR: playerStats.basic.skywarsKDR,
 			},
-			skyblock: {},
+			skyblock: {
+				slayersXp: skyblock.slayersXp,
+				skillAverage: skyblock.skillAverage,
+			},
+			duels: {
+				wins: player.stats
+					? player.stats.Duels
+						? player.stats.Duels.wins || 0
+						: 0
+					: 0,
+				WLR:
+					(player.stats
+						? player.stats.Duels
+							? player.stats.Duels.wins || 0
+							: 0
+						: 0) /
+					(player.stats
+						? player.stats.Duels
+							? player.stats.Duels.losses || 0
+							: 0
+						: 0)
+						? player.stats.Duels.wins / player.stats.Duels.losses
+						: 0,
+				kills: player.stats
+					? player.stats.Duels
+						? player.stats.Duels.kills || 0
+						: 0
+					: 0,
+			},
+			UHC: {
+				wins: player.stats
+					? player.stats.UHC
+						? player.stats.UHC.wins || 0
+						: 0
+					: 0,
+				KDR:
+					(player.stats
+						? player.stats.UHC
+							? player.stats.UHC.kills || 0
+							: 0
+						: 0) /
+					(player.stats
+						? player.stats.UHC
+							? player.stats.UHC.deaths || 0
+							: 0
+						: 0)
+						? player.stats.UHC.kills / player.stats.UHC.deaths
+						: 0,
+			},
+			blitz: {
+				wins: player.stats
+					? player.stats.HungerGames
+						? player.stats.HungerGames.wins || 0
+						: 0
+					: 0,
+				kills: player.stats
+					? player.stats.HungerGames
+						? player.stats.HungerGames.kills || 0
+						: 0
+					: 0,
+			},
+			tnt: {
+				wins: player.stats
+					? player.stats.TNTGames
+						? player.stats.TNTGames.wins || 0
+						: 0
+					: 0,
+			},
+			buildBattle: {
+				score: player.stats
+					? player.stats.BuildBattle
+						? player.stats.BuildBattle.score || 0
+						: 0
+					: 0,
+			},
+			classic: {
+				wins: player.stats
+					? (player.stats.VampireZ
+							? (player.stats.VampireZ.human_wins || 0) +
+							  (player.stats.VampireZ.vampire_wins || 0)
+							: 0) +
+					  (player.stats.Quake ? player.stats.Quake.wins || 0 : 0) +
+					  (player.stats.Paintball ? player.stats.Paintball.wins || 0 : 0) +
+					  (player.stats.Arena ? player.stats.Arena.wins || 0 : 0) +
+					  (player.stats.Walls ? player.stats.Walls.wins || 0 : 0) +
+					  (player.stats.GingerBread ? player.stats.GingerBread.wins || 0 : 0)
+					: 0,
+			},
+			arcade: {
+				// CONTINUE FROM HERE
+				// CONTINUE FROM HERE
+				// CONTINUE FROM HERE
+
+				wins: player.stats ? player.stats.Arcade : 0,
+			},
 		};
 
 		let requirementMet = {
