@@ -1,3 +1,3 @@
-# discord.js-template
+# LOLDirt Discord Bot
 
-A template for discord.js bot.
+A discord bot for LOLDirt Minecraft Hypixel guild.
