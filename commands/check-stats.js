@@ -3,7 +3,9 @@ const { findPlayerData } = require("../helpers/playerData");
 const Discord = require("discord.js");
 const { Client } = require("@zikeji/hypixel");
 const hypixel = new Client(hypixelAPIKey);
+const requirement = require("../requirement.json");
 
+// finds skywars level
 function findSkywarsLevel(xp) {
 	const xps = [0, 20, 70, 150, 250, 500, 1000, 2000, 3500, 6000, 10000, 15000];
 
@@ -18,7 +20,7 @@ function findSkywarsLevel(xp) {
 	}
 }
 
-function sb(skyblockProfilesList) {
+function sb(skyblockProfilesList, playerData) {
 	if (!skyblockProfilesList) return { skillAverage: 0, slayersXp: 0 };
 
 	const leveling_xp = {
@@ -168,7 +170,7 @@ module.exports = {
 
 		const playerData = await findPlayerData(args.shift());
 
-		if (!playerData) {
+		if (!playerData || !playerData.id || !playerData.name) {
 			const playerError = new Discord.MessageEmbed({
 				color: "#ff0000",
 				title: "Error:",
@@ -178,7 +180,7 @@ module.exports = {
 			return sentMsg.edit(playerError);
 		}
 
-		const player = await hypixel.player.uuid(playerData.id);
+		const player = await hypixel.player.uuid(playerData.id).catch((err) => console.error(err))
 
 		if (!player) {
 			const playerError = new Discord.MessageEmbed({
@@ -193,74 +195,6 @@ module.exports = {
 		function objectiveMet(objective, goal) {
 			return objective >= goal ? "✔ " : "❌";
 		}
-
-		const requirement = {
-			basic: {
-				networkLevel: 125,
-				bedwarsLevel: 70,
-				bedwarsFKDR: 1.5,
-				skywarsLevel: 5,
-				skywarsKDR: 1,
-				duelsWins: 700,
-				achievementPoints: 7000,
-			},
-			major: {
-				bedwars: {
-					level: 175,
-					FKDR: 2,
-				},
-				skywars: {
-					level: 12,
-					wins: 1200,
-					KDR: 2,
-				},
-				skyblock: {
-					slayersXp: 250000,
-					skillAverage: 20,
-				},
-				duels: {
-					wins: 5000,
-					WLR: 5,
-					kills: 4000,
-				},
-				UHC: {
-					wins: 40,
-					KDR: 2,
-				},
-				blitz: {
-					wins: 150,
-					kills: 3000,
-				},
-				tnt: {
-					wins: 500,
-				},
-				buildBattle: {
-					score: 15000,
-				},
-				classic: {
-					wins: 150,
-				},
-				arcade: {
-					wins: 1000,
-				},
-				copsAndCrims: {
-					wins: 500,
-					kills: 1000,
-				},
-				murderMystery: {
-					wins: 1000,
-					kills: 1500,
-				},
-				hypixelNetwork: {
-					level: 250,
-					achievementPoints: 15000,
-					karma: 10000000,
-				},
-				pit: {
-					prestige: 5,
-				},
-			},
-		};
 
 		const networkExp = player.networkExp || 0;
 		const bedwarsFinalKills = player.stats
@@ -319,7 +253,7 @@ module.exports = {
 				return null;
 			});
 
-		const skyblock = sb(skyblockProfilesList);
+		const skyblock = sb(skyblockProfilesList, playerData);
 
 		playerStats.major = {
 			bedwars: {
@@ -514,23 +448,57 @@ module.exports = {
 			},
 		};
 
+		const name = {
+			major: {
+				bedwars: "Bedwars",
+				skywars: "Skywars",
+				skyblock: "SkyBlock",
+				duels: "Duels",
+				UHC: "UHC",
+				blitz: "Blitz Survival Games",
+				tnt: "TNT Games",
+				buildBattle: "Build Battle",
+				classic: "Classic Games",
+				arcade: "Arcade Games",
+				copsAndCrims: "Cops and Crims",
+				murderMystery: "Murder Mystery",
+				hypixelNetwork: "Hypixel Network",
+				pit: "The Pit",
+			},
+		};
+
+		let majorResultStr = "";
+
 		for (const i in requirement) {
 			for (const j in requirement[i]) {
 				if (i === "basic") {
-					requirementMet.basic[i] = objectiveMet(
-						playerStats.basic[i],
-						requirement.basic[i]
+					requirementMet[i][j] = objectiveMet(
+						playerStats[i][j],
+						requirement[i][j]
 					);
+				} else if (i === "major") {
+					const reqArr = Object.values(requirement[i][j]);
+					const statArr = Object.values(playerStats[i][j]);
+					let resultArr = [];
+
+					for (let t = 0; t < reqArr.length; t++) {
+						resultArr.push(objectiveMet(statArr[t], reqArr[t]));
+					}
+
+					requirementMet[i][j] = resultArr.indexOf("❌") >= 0 ? "❌" : "✔ ";
+
+					if (requirementMet[i][j] === "✔ ") {
+						majorResultStr += `✔ ${name[i][j]}\n`;
+					}
 				}
-				// CONTINUE HERE
-				// CONTINUE HERE
-				// CONTINUE HERE
 			}
 		}
 
 		const totalRequirementsMet = {
 			basic:
-				Object.values(requirementMet.basic).indexOf("❌") >= 0 ? "❌" : "✅ ",
+				Object.values(requirementMet.basic).indexOf("❌") >= 0 ? "❌" : "✅",
+			major:
+				Object.values(requirementMet.major).indexOf("✔ ") >= 0 ? "✅" : "❌",
 		};
 
 		const statCheckEmbed = new Discord.MessageEmbed({
@@ -542,6 +510,12 @@ module.exports = {
 				{
 					name: `${totalRequirementsMet.basic} Basic Requirements:`,
 					value: `\`\`\`\n${requirementMet.basic.networkLevel}Hypixel Network Level: ${playerStats.basic.networkLevel}\n${requirementMet.basic.bedwarsLevel}Bedwars Level: ${playerStats.basic.bedwarsLevel}\n${requirementMet.basic.bedwarsFKDR}Bedwars FKDR: ${playerStats.basic.bedwarsFKDR}\n${requirementMet.basic.skywarsLevel}Skywars Level: ${playerStats.basic.skywarsLevel}\n${requirementMet.basic.skywarsKDR}Skywars KDR: ${playerStats.basic.skywarsKDR}\n${requirementMet.basic.duelsWins}Duels Wins: ${playerStats.basic.duelsWins}\n${requirementMet.basic.achievementPoints}Achievement Points: ${playerStats.basic.achievementPoints}\`\`\``,
+				},
+				{
+					name: `${totalRequirementsMet.major} Major Requirements:`,
+					value: `\`\`\`${
+						majorResultStr ? majorResultStr : "No gamemode requirement met."
+					}\`\`\``,
 				},
 			],
 		});
