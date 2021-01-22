@@ -1,9 +1,9 @@
 const { hypixelAPIKey } = require("../index");
 const { findPlayerData } = require("../helpers/playerData");
+const requirement = require("../requirement.json");
 const Discord = require("discord.js");
 const { Client } = require("@zikeji/hypixel");
 const hypixel = new Client(hypixelAPIKey);
-const requirement = require("../requirement.json");
 
 // finds skywars level
 function findSkywarsLevel(xp) {
