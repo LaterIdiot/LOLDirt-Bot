@@ -420,11 +420,69 @@ module.exports = {
 					: 0,
 			},
 			arcade: {
-				// CONTINUE FROM HERE
-				// CONTINUE FROM HERE
-				// CONTINUE FROM HERE
-
-				wins: player.stats ? player.stats.Arcade : 0,
+				wins: player.stats
+					? player.stats.Arcade
+						? (player.stats.Arcade.wins_dayone || 0) +
+						  (player.stats.Arcade.wins_dragonwars2 || 0) +
+						  (player.stats.Arcade.wins_ender || 0) +
+						  (player.stats.Arcade.wins_farm_hunt || 0) +
+						  (player.stats.Arcade.wins_oneinthequiver || 0) +
+						  (player.stats.Arcade.wins_party || 0) +
+						  (player.stats.Arcade.wins_party_2 || 0) +
+						  (player.stats.Arcade.wins_party_3 || 0) +
+						  (player.stats.Arcade.wins_throw_out || 0) +
+						  (player.stats.Arcade.wins_hole_in_the_wall || 0) +
+						  (player.stats.Arcade.wins_simon_says || 0) +
+						  (player.stats.Arcade.wins_mini_walls || 0) +
+						  (player.stats.Arcade.seeker_wins_hide_and_seek || 0) +
+						  (player.stats.Arcade.hider_wins_hide_and_seek || 0) +
+						  (player.stats.Arcade.party_pooper_seeker_wins_hide_and_seek ||
+								0) +
+						  (player.stats.Arcade.party_pooper_hider_wins_hide_and_seek || 0) +
+						  (player.stats.Arcade.wins_zombies || 0)
+						: 0
+					: 0,
+			},
+			copsAndCrims: {
+				wins: player.stats
+					? player.stats.MCGO
+						? player.stats.MCGO.game_wins || 0
+						: 0
+					: 0,
+				kills: player.stats
+					? player.stats.MCGO
+						? (player.stats.MCGO.kills || 0) +
+						  (player.stats.MCGO.kills_deathmatch || 0)
+						: 0
+					: 0,
+			},
+			murderMystery: {
+				wins: player.stats
+					? player.stats.MurderMystery
+						? player.stats.MurderMystery.wins || 0
+						: 0
+					: 0,
+				kills: player.stats
+					? player.stats.MurderMystery
+						? player.stats.MurderMystery.kills || 0
+						: 0
+					: 0,
+			},
+			hypixelNetwork: {
+				level: playerStats.basic.networkLevel,
+				achievementPoints: playerStats.basic.achievementPoints,
+				karma: player.karma || 0,
+			},
+			pit: {
+				prestige: player.stats
+					? player.stats.Pit
+						? player.stats.Pit.profile
+							? player.stats.Pit.profile.prestiges
+								? player.stats.Pit.profile.prestiges.length || 0
+								: 0
+							: 0
+						: 0
+					: 0,
 			},
 		};
 
@@ -438,13 +496,36 @@ module.exports = {
 				duelsWins: null,
 				achievementPoints: null,
 			},
+			major: {
+				bedwars: null,
+				skywars: null,
+				skyblock: null,
+				duels: null,
+				UHC: null,
+				blitz: null,
+				tnt: null,
+				buildBattle: null,
+				classic: null,
+				arcade: null,
+				copsAndCrims: null,
+				murderMystery: null,
+				hypixelNetwork: null,
+				pit: null,
+			},
 		};
 
-		for (i in requirement.basic) {
-			requirementMet.basic[i] = objectiveMet(
-				playerStats.basic[i],
-				requirement.basic[i]
-			);
+		for (const i in requirement) {
+			for (const j in requirement[i]) {
+				if (i === "basic") {
+					requirementMet.basic[i] = objectiveMet(
+						playerStats.basic[i],
+						requirement.basic[i]
+					);
+				}
+				// CONTINUE HERE
+				// CONTINUE HERE
+				// CONTINUE HERE
+			}
 		}
 
 		const totalRequirementsMet = {
