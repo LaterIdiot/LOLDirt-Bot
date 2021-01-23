@@ -151,6 +151,500 @@ function sb(skyblockProfilesList, playerData) {
 	return { skillAverage, slayersXp };
 }
 
+async function command(message, sentMsg, args) {
+	const playerData = await findPlayerData(args.shift());
+
+	if (!playerData || !playerData.id || !playerData.name) {
+		const playerError = new Discord.MessageEmbed({
+			color: "#ff0000",
+			title: "Error:",
+			description: "Player does not exist.",
+			timestamp: new Date(),
+			footer: {
+				text: message.author.username,
+				icon_url: message.author.avatarURL(),
+			},
+		});
+
+		return sentMsg.edit(playerError);
+	}
+
+	const player = await hypixel.player
+		.uuid(playerData.id)
+		.catch((err) => console.error(err));
+
+	if (!player) {
+		const playerError = new Discord.MessageEmbed({
+			color: "#ff0000",
+			title: "Error",
+			description: "Player does not exist on Hypixel Network.",
+			timestamp: new Date(),
+			footer: {
+				text: message.author.username,
+				icon_url: message.author.avatarURL(),
+			},
+		});
+
+		return sentMsg.edit(playerError);
+	}
+
+	function objectiveMet(objective, goal) {
+		return objective >= goal ? "✔ " : "❌";
+	}
+
+	const networkExp = player.networkExp || 0;
+	const bedwarsFinalKills = player.stats
+		? player.stats.Bedwars
+			? player.stats.Bedwars.final_kills_bedwars || 0
+			: 0
+		: 0;
+	const bedwarsFinalDeaths = player.stats
+		? player.stats.Bedwars
+			? player.stats.Bedwars.final_deaths_bedwars || 0
+			: 0
+		: 0;
+	const skywars = player.stats ? player.stats.SkyWars || null : null;
+	const skywarsKills =
+		(skywars ? skywars.kills_solo || 0 : 0) +
+		(skywars ? skywars.kills_team || 0 : 0) +
+		(skywars ? skywars.kills_mega || 0 : 0) +
+		(skywars ? skywars.kills_mega_doubles || 0 : 0);
+	const skywarsDeaths =
+		(skywars ? skywars.deaths_solo || 0 : 0) +
+		(skywars ? skywars.deaths_team || 0 : 0) +
+		(skywars ? skywars.deaths_mega || 0 : 0) +
+		(skywars ? skywars.deaths_mega_doubles || 0 : 0);
+
+	let playerStats = {
+		basic: {
+			networkLevel: Math.floor(Math.sqrt(12.25 + 0.0008 * networkExp) - 2.5),
+			bedwarsLevel: player.achievements
+				? player.achievements.bedwars_level || 0
+				: 0,
+			bedwarsFKDR: ![Infinity, NaN, 0].includes(
+				bedwarsFinalKills / bedwarsFinalDeaths
+			)
+				? Number((bedwarsFinalKills / bedwarsFinalDeaths).toFixed(2))
+				: 0,
+			skywarsLevel: skywars
+				? skywars.skywars_experience
+					? Number(findSkywarsLevel(skywars.skywars_experience))
+					: 0
+				: 0,
+			skywarsKDR: ![Infinity, NaN, 0].includes(skywarsKills / skywarsDeaths)
+				? Number((skywarsKills / skywarsDeaths).toFixed(2))
+				: 0,
+			duelsWins: player.stats
+				? player.stats.Duels
+					? player.stats.Duels.wins || 0
+					: 0
+				: 0,
+			achievementPoints: player.achievementPoints || 0,
+		},
+	};
+
+	const skyblockProfilesList = await hypixel.skyblock.profiles
+		.uuid(playerData.id)
+		.catch(() => {
+			return null;
+		});
+
+	const skyblock = sb(skyblockProfilesList, playerData);
+
+	playerStats.major = {
+		bedwars: {
+			level: playerStats.basic.bedwarsLevel,
+			FKDR: playerStats.basic.bedwarsFKDR,
+		},
+		skywars: {
+			level: playerStats.basic.skywarsLevel,
+			wins: skywars ? skywars.wins || 0 : 0,
+			KDR: playerStats.basic.skywarsKDR,
+		},
+		skyblock: {
+			slayersXp: skyblock.slayersXp,
+			skillAverage: skyblock.skillAverage,
+		},
+		duels: {
+			wins: player.stats
+				? player.stats.Duels
+					? player.stats.Duels.wins || 0
+					: 0
+				: 0,
+			WLR: player.stats
+				? player.stats.Duels
+					? ![Infinity, NaN, 0].includes(
+							(player.stats.Duels.wins || 0) / (player.stats.Duels.losses || 0)
+					  )
+						? Number(
+								(
+									(player.stats.Duels.wins || 0) /
+									(player.stats.Duels.losses || 0)
+								).toFixed(2)
+						  )
+						: 0
+					: 0
+				: 0,
+			kills: player.stats
+				? player.stats.Duels
+					? player.stats.Duels.kills || 0
+					: 0
+				: 0,
+		},
+		UHC: {
+			wins: player.stats
+				? player.stats.UHC
+					? player.stats.UHC.wins || 0
+					: 0
+				: 0,
+			KDR: player.stats
+				? player.stats.UHC
+					? ![Infinity, NaN, 0].includes(
+							(player.stats.UHC.kills || 0) / (player.stats.UHC.deaths || 0)
+					  )
+						? (player.stats.UHC.kills || 0) / (player.stats.UHC.deaths || 0)
+						: 0
+					: 0
+				: 0,
+		},
+		blitz: {
+			wins: player.stats
+				? player.stats.HungerGames
+					? player.stats.HungerGames.wins || 0
+					: 0
+				: 0,
+			kills: player.stats
+				? player.stats.HungerGames
+					? player.stats.HungerGames.kills || 0
+					: 0
+				: 0,
+		},
+		tnt: {
+			wins: player.stats
+				? player.stats.TNTGames
+					? player.stats.TNTGames.wins || 0
+					: 0
+				: 0,
+		},
+		buildBattle: {
+			score: player.stats
+				? player.stats.BuildBattle
+					? player.stats.BuildBattle.score || 0
+					: 0
+				: 0,
+		},
+		classic: {
+			wins: player.stats
+				? (player.stats.VampireZ
+						? (player.stats.VampireZ.human_wins || 0) +
+						  (player.stats.VampireZ.vampire_wins || 0)
+						: 0) +
+				  (player.stats.Quake ? player.stats.Quake.wins || 0 : 0) +
+				  (player.stats.Paintball ? player.stats.Paintball.wins || 0 : 0) +
+				  (player.stats.Arena ? player.stats.Arena.wins || 0 : 0) +
+				  (player.stats.Walls ? player.stats.Walls.wins || 0 : 0) +
+				  (player.stats.GingerBread ? player.stats.GingerBread.wins || 0 : 0)
+				: 0,
+		},
+		arcade: {
+			wins: player.stats
+				? player.stats.Arcade
+					? (player.stats.Arcade.wins_dayone || 0) +
+					  (player.stats.Arcade.wins_dragonwars2 || 0) +
+					  (player.stats.Arcade.wins_ender || 0) +
+					  (player.stats.Arcade.wins_farm_hunt || 0) +
+					  (player.stats.Arcade.wins_oneinthequiver || 0) +
+					  (player.stats.Arcade.wins_party || 0) +
+					  (player.stats.Arcade.wins_party_2 || 0) +
+					  (player.stats.Arcade.wins_party_3 || 0) +
+					  (player.stats.Arcade.wins_throw_out || 0) +
+					  (player.stats.Arcade.wins_hole_in_the_wall || 0) +
+					  (player.stats.Arcade.wins_simon_says || 0) +
+					  (player.stats.Arcade.wins_mini_walls || 0) +
+					  (player.stats.Arcade.seeker_wins_hide_and_seek || 0) +
+					  (player.stats.Arcade.hider_wins_hide_and_seek || 0) +
+					  (player.stats.Arcade.party_pooper_seeker_wins_hide_and_seek || 0) +
+					  (player.stats.Arcade.party_pooper_hider_wins_hide_and_seek || 0) +
+					  (player.stats.Arcade.wins_zombies || 0)
+					: 0
+				: 0,
+		},
+		copsAndCrims: {
+			wins: player.stats
+				? player.stats.MCGO
+					? player.stats.MCGO.game_wins || 0
+					: 0
+				: 0,
+			kills: player.stats
+				? player.stats.MCGO
+					? (player.stats.MCGO.kills || 0) +
+					  (player.stats.MCGO.kills_deathmatch || 0)
+					: 0
+				: 0,
+		},
+		murderMystery: {
+			wins: player.stats
+				? player.stats.MurderMystery
+					? player.stats.MurderMystery.wins || 0
+					: 0
+				: 0,
+			kills: player.stats
+				? player.stats.MurderMystery
+					? player.stats.MurderMystery.kills || 0
+					: 0
+				: 0,
+		},
+		hypixelNetwork: {
+			level: playerStats.basic.networkLevel,
+			achievementPoints: playerStats.basic.achievementPoints,
+			karma: player.karma || 0,
+		},
+		pit: {
+			prestige: player.stats
+				? player.stats.Pit
+					? player.stats.Pit.profile
+						? player.stats.Pit.profile.prestiges
+							? player.stats.Pit.profile.prestiges.length || 0
+							: 0
+						: 0
+					: 0
+				: 0,
+		},
+	};
+
+	playerStats.minor = {
+		bedwarsFKDR: playerStats.basic.bedwarsFKDR,
+		bedwarsWins: player.stats
+			? player.stats.Bedwars
+				? player.stats.Bedwars.wins_bedwars || 0
+				: 0
+			: 0,
+		bedwarsBBLR: player.stats
+			? player.stats.Bedwars
+				? ![Infinity, NaN, 0].includes(
+						(player.stats.Bedwars.beds_broken_bedwars || 0) /
+							(player.stats.Bedwars.beds_lost_bedwars || 0)
+				  )
+					? Number(
+							(
+								(player.stats.Bedwars.beds_broken_bedwars || 0) /
+								(player.stats.Bedwars.beds_lost_bedwars || 0)
+							).toFixed(2)
+					  )
+					: 0
+				: 0
+			: 0,
+		bedwarsWLR: player.stats
+			? player.stats.Bedwars
+				? ![Infinity, NaN, 0].includes(
+						(player.stats.Bedwars.wins_bedwars || 0) /
+							(player.stats.Bedwars.losses_bedwars || 0)
+				  )
+					? Number(
+							(
+								(player.stats.Bedwars.wins_bedwars || 0) /
+								(player.stats.Bedwars.losses_bedwars || 0)
+							).toFixed(2)
+					  )
+					: 0
+				: 0
+			: 0,
+		bedwarsLevel: playerStats.basic.bedwarsLevel,
+		skywarsKDR: playerStats.basic.skywarsKDR,
+		skywarsWins: playerStats.major.skywars.wins,
+		skywarsKills: skywarsKills,
+		skywarsWLR: skywars
+			? ![Infinity, NaN, 0].includes(
+					(skywars.wins || 0) / (skywars.losses || 0)
+			  )
+				? Number(((skywars.wins || 0) / (skywars.losses || 0)).toFixed(2))
+				: 0
+			: 0,
+		skywarsLevel: playerStats.basic.skywarsLevel,
+		duelsWLR: playerStats.major.duels.WLR,
+		duelsKDR: player.stats
+			? player.stats.Duels
+				? ![Infinity, NaN, 0].includes(
+						(player.stats.Duels.kills || 0) / (player.stats.Duels.deaths || 0)
+				  )
+					? Number(
+							(
+								(player.stats.Duels.kills || 0) /
+								(player.stats.Duels.deaths || 0)
+							).toFixed(2)
+					  )
+					: 0
+				: 0
+			: 0,
+		duelsWins: playerStats.basic.duelsWins,
+		networkLevel: playerStats.basic.networkLevel,
+		achievementPoints: playerStats.basic.achievementPoints,
+	};
+
+	let requirementMet = {
+		basic: {
+			networkLevel: null,
+			bedwarsLevel: null,
+			bedwarsFKDR: null,
+			skywarsLevel: null,
+			skywarsKDR: null,
+			duelsWins: null,
+			achievementPoints: null,
+		},
+		major: {
+			bedwars: null,
+			skywars: null,
+			skyblock: null,
+			duels: null,
+			UHC: null,
+			blitz: null,
+			tnt: null,
+			buildBattle: null,
+			classic: null,
+			arcade: null,
+			copsAndCrims: null,
+			murderMystery: null,
+			hypixelNetwork: null,
+			pit: null,
+		},
+		minor: {
+			bedwarsFKDR: null,
+			bedwarsWins: null,
+			bedwarsBBLR: null,
+			bedwarsWLR: null,
+			bedwarsLevel: null,
+			skywarsKDR: null,
+			skywarsWins: null,
+			skywarsKills: null,
+			skywarsWLR: null,
+			skywarsLevel: null,
+			duelsWLR: null,
+			duelsKDR: null,
+			duelsWins: null,
+			networkLevel: null,
+			achievementPoints: null,
+		},
+	};
+
+	const name = {
+		major: {
+			bedwars: "Bedwars",
+			skywars: "Skywars",
+			skyblock: "SkyBlock",
+			duels: "Duels",
+			UHC: "UHC",
+			blitz: "Blitz Survival Games",
+			tnt: "TNT Games",
+			buildBattle: "Build Battle",
+			classic: "Classic Games",
+			arcade: "Arcade Games",
+			copsAndCrims: "Cops and Crims",
+			murderMystery: "Murder Mystery",
+			hypixelNetwork: "Hypixel Network",
+			pit: "The Pit",
+		},
+		minor: {
+			bedwarsFKDR: "Bedwars Final K/D",
+			bedwarsWins: "Bedwars Wins",
+			bedwarsBBLR: "Bedwars BBLR",
+			bedwarsWLR: "Bedwars W/L",
+			bedwarsLevel: "Bedwars Level",
+			skywarsKDR: "Skywars K/D",
+			skywarsWins: "Skywars Wins",
+			skywarsKills: "Skywars Kills",
+			skywarsWLR: "Skywars W/L",
+			skywarsLevel: "Skywars Level",
+			duelsWLR: "Duels W/L",
+			duelsKDR: "Duels K/D",
+			duelsWins: "Duels Wins",
+			networkLevel: "Hypixel Network Level",
+			achievementPoints: "Achievement Points",
+		},
+	};
+
+	// console.log(playerStats);
+
+	let majorResultStr = "";
+	let minorResultStr = "";
+
+	for (const i in requirement) {
+		for (const j in requirement[i]) {
+			if (i === "basic") {
+				requirementMet[i][j] = objectiveMet(
+					playerStats[i][j],
+					requirement[i][j]
+				);
+			} else if (i === "major") {
+				const reqArr = Object.values(requirement[i][j]);
+				const statArr = Object.values(playerStats[i][j]);
+				let resultArr = [];
+
+				for (let t = 0; t < reqArr.length; t++) {
+					resultArr.push(objectiveMet(statArr[t], reqArr[t]));
+				}
+
+				requirementMet[i][j] = resultArr.indexOf("❌") >= 0 ? "❌" : "✔ ";
+
+				if (requirementMet[i][j] === "✔ ") {
+					majorResultStr += `✔ ${name[i][j]}\n`;
+				}
+			} else {
+				requirementMet[i][j] = objectiveMet(
+					playerStats[i][j],
+					requirement[i][j]
+				);
+
+				if (requirementMet[i][j] === "✔ ") {
+					minorResultStr += `✔ ${name[i][j]}\n`;
+				}
+			}
+		}
+	}
+
+	const basicResultStr = `${requirementMet.basic.networkLevel}Hypixel Network Level: ${playerStats.basic.networkLevel}\n${requirementMet.basic.bedwarsLevel}Bedwars Level: ${playerStats.basic.bedwarsLevel}\n${requirementMet.basic.bedwarsFKDR}Bedwars FKDR: ${playerStats.basic.bedwarsFKDR}\n${requirementMet.basic.skywarsLevel}Skywars Level: ${playerStats.basic.skywarsLevel}\n${requirementMet.basic.skywarsKDR}Skywars KDR: ${playerStats.basic.skywarsKDR}\n${requirementMet.basic.duelsWins}Duels Wins: ${playerStats.basic.duelsWins}\n${requirementMet.basic.achievementPoints}Achievement Points: ${playerStats.basic.achievementPoints}`;
+
+	const totalRequirementsMet = {
+		basic: Object.values(requirementMet.basic).includes("❌") ? "❌" : "✅",
+		major: Object.values(requirementMet.major).includes("✔ ") ? "✅" : "❌",
+		minor:
+			Object.values(requirementMet.minor).filter((x) => x === "✔ ").length >= 2
+				? "✅"
+				: "❌",
+	};
+
+	const statCheckEmbed = new Discord.MessageEmbed({
+		color: "#32a852",
+		title: "Check List:",
+		description:
+			"This is a checklist which you can view and see what requirements you meet and if you can join our guild or not.",
+		fields: [
+			{
+				name: `${totalRequirementsMet.basic} Basic Requirements:`,
+				value: `\`\`\`\n${basicResultStr}\`\`\``,
+			},
+			{
+				name: `${totalRequirementsMet.major} Major Requirements:`,
+				value: `\`\`\`\n${
+					majorResultStr ? majorResultStr : "No gamemode requirement met."
+				}\`\`\``,
+			},
+			{
+				name: `${totalRequirementsMet.minor} Minor Requirements:`,
+				value: `\`\`\`\n${
+					minorResultStr ? minorResultStr : "No requirement met."
+				}\`\`\``,
+			},
+		],
+		timestamp: new Date(),
+		footer: {
+			text: message.author.username,
+			icon_url: message.author.avatarURL(),
+		},
+	});
+
+	return sentMsg.edit(statCheckEmbed);
+}
+
 module.exports = {
 	name: "check-stats",
 	description:
@@ -166,360 +660,9 @@ module.exports = {
 			description: "Loading player stats.",
 		});
 
-		const sentMsg = await message.channel.send(loadingEmbed);
+		const botMsg = await message.channel.send(message.author, loadingEmbed);
 
-		const playerData = await findPlayerData(args.shift());
-
-		if (!playerData || !playerData.id || !playerData.name) {
-			const playerError = new Discord.MessageEmbed({
-				color: "#ff0000",
-				title: "Error:",
-				description: "Player does not exist.",
-			});
-
-			return sentMsg.edit(playerError);
-		}
-
-		const player = await hypixel.player.uuid(playerData.id).catch((err) => console.error(err))
-
-		if (!player) {
-			const playerError = new Discord.MessageEmbed({
-				color: "#ff0000",
-				title: "Error",
-				description: "Player does not exist on Hypixel Network.",
-			});
-
-			return sentMsg.edit(playerError);
-		}
-
-		function objectiveMet(objective, goal) {
-			return objective >= goal ? "✔ " : "❌";
-		}
-
-		const networkExp = player.networkExp || 0;
-		const bedwarsFinalKills = player.stats
-			? player.stats.Bedwars
-				? player.stats.Bedwars.final_kills_bedwars || 0
-				: 0
-			: 0;
-		const bedwarsFinalDeaths = player.stats
-			? player.stats.Bedwars
-				? player.stats.Bedwars.final_deaths_bedwars || 0
-				: 0
-			: 0;
-		const skywars = player.stats ? player.stats.SkyWars || null : null;
-		const skywarsKills =
-			(skywars ? skywars.kills_solo || 0 : 0) +
-			(skywars ? skywars.kills_team || 0 : 0) +
-			(skywars ? skywars.kills_mega || 0 : 0) +
-			(skywars ? skywars.kills_mega_doubles || 0 : 0);
-		const skywarsDeaths =
-			(skywars ? skywars.deaths_solo || 0 : 0) +
-			(skywars ? skywars.deaths_team || 0 : 0) +
-			(skywars ? skywars.deaths_mega || 0 : 0) +
-			(skywars ? skywars.deaths_mega_doubles || 0 : 0);
-
-		let playerStats = {
-			basic: {
-				networkLevel: Math.floor(Math.sqrt(12.25 + 0.0008 * networkExp) - 2.5),
-				bedwarsLevel: player.achievements
-					? player.achievements.bedwars_level || 0
-					: 0,
-				bedwarsFKDR:
-					bedwarsFinalKills / bedwarsFinalDeaths
-						? (bedwarsFinalKills / bedwarsFinalDeaths).toFixed(2)
-						: 0,
-				skywarsLevel: skywars
-					? skywars.skywars_experience
-						? findSkywarsLevel(skywars.skywars_experience)
-						: 0
-					: 0,
-				skywarsKDR:
-					skywarsKills / skywarsDeaths
-						? (skywarsKills / skywarsDeaths).toFixed(2)
-						: 0,
-				duelsWins: player.stats
-					? player.stats.Duels
-						? player.stats.Duels.wins || 0
-						: 0
-					: 0,
-				achievementPoints: player.achievementPoints || 0,
-			},
-		};
-
-		const skyblockProfilesList = await hypixel.skyblock.profiles
-			.uuid(playerData.id)
-			.catch(() => {
-				return null;
-			});
-
-		const skyblock = sb(skyblockProfilesList, playerData);
-
-		playerStats.major = {
-			bedwars: {
-				level: playerStats.basic.bedwarsLevel,
-				FKDR: playerStats.basic.bedwarsFKDR,
-			},
-			skywars: {
-				level: playerStats.basic.skywarsLevel,
-				wins: skywars ? skywars.wins || 0 : 0,
-				KDR: playerStats.basic.skywarsKDR,
-			},
-			skyblock: {
-				slayersXp: skyblock.slayersXp,
-				skillAverage: skyblock.skillAverage,
-			},
-			duels: {
-				wins: player.stats
-					? player.stats.Duels
-						? player.stats.Duels.wins || 0
-						: 0
-					: 0,
-				WLR:
-					(player.stats
-						? player.stats.Duels
-							? player.stats.Duels.wins || 0
-							: 0
-						: 0) /
-					(player.stats
-						? player.stats.Duels
-							? player.stats.Duels.losses || 0
-							: 0
-						: 0)
-						? player.stats.Duels.wins / player.stats.Duels.losses
-						: 0,
-				kills: player.stats
-					? player.stats.Duels
-						? player.stats.Duels.kills || 0
-						: 0
-					: 0,
-			},
-			UHC: {
-				wins: player.stats
-					? player.stats.UHC
-						? player.stats.UHC.wins || 0
-						: 0
-					: 0,
-				KDR:
-					(player.stats
-						? player.stats.UHC
-							? player.stats.UHC.kills || 0
-							: 0
-						: 0) /
-					(player.stats
-						? player.stats.UHC
-							? player.stats.UHC.deaths || 0
-							: 0
-						: 0)
-						? player.stats.UHC.kills / player.stats.UHC.deaths
-						: 0,
-			},
-			blitz: {
-				wins: player.stats
-					? player.stats.HungerGames
-						? player.stats.HungerGames.wins || 0
-						: 0
-					: 0,
-				kills: player.stats
-					? player.stats.HungerGames
-						? player.stats.HungerGames.kills || 0
-						: 0
-					: 0,
-			},
-			tnt: {
-				wins: player.stats
-					? player.stats.TNTGames
-						? player.stats.TNTGames.wins || 0
-						: 0
-					: 0,
-			},
-			buildBattle: {
-				score: player.stats
-					? player.stats.BuildBattle
-						? player.stats.BuildBattle.score || 0
-						: 0
-					: 0,
-			},
-			classic: {
-				wins: player.stats
-					? (player.stats.VampireZ
-							? (player.stats.VampireZ.human_wins || 0) +
-							  (player.stats.VampireZ.vampire_wins || 0)
-							: 0) +
-					  (player.stats.Quake ? player.stats.Quake.wins || 0 : 0) +
-					  (player.stats.Paintball ? player.stats.Paintball.wins || 0 : 0) +
-					  (player.stats.Arena ? player.stats.Arena.wins || 0 : 0) +
-					  (player.stats.Walls ? player.stats.Walls.wins || 0 : 0) +
-					  (player.stats.GingerBread ? player.stats.GingerBread.wins || 0 : 0)
-					: 0,
-			},
-			arcade: {
-				wins: player.stats
-					? player.stats.Arcade
-						? (player.stats.Arcade.wins_dayone || 0) +
-						  (player.stats.Arcade.wins_dragonwars2 || 0) +
-						  (player.stats.Arcade.wins_ender || 0) +
-						  (player.stats.Arcade.wins_farm_hunt || 0) +
-						  (player.stats.Arcade.wins_oneinthequiver || 0) +
-						  (player.stats.Arcade.wins_party || 0) +
-						  (player.stats.Arcade.wins_party_2 || 0) +
-						  (player.stats.Arcade.wins_party_3 || 0) +
-						  (player.stats.Arcade.wins_throw_out || 0) +
-						  (player.stats.Arcade.wins_hole_in_the_wall || 0) +
-						  (player.stats.Arcade.wins_simon_says || 0) +
-						  (player.stats.Arcade.wins_mini_walls || 0) +
-						  (player.stats.Arcade.seeker_wins_hide_and_seek || 0) +
-						  (player.stats.Arcade.hider_wins_hide_and_seek || 0) +
-						  (player.stats.Arcade.party_pooper_seeker_wins_hide_and_seek ||
-								0) +
-						  (player.stats.Arcade.party_pooper_hider_wins_hide_and_seek || 0) +
-						  (player.stats.Arcade.wins_zombies || 0)
-						: 0
-					: 0,
-			},
-			copsAndCrims: {
-				wins: player.stats
-					? player.stats.MCGO
-						? player.stats.MCGO.game_wins || 0
-						: 0
-					: 0,
-				kills: player.stats
-					? player.stats.MCGO
-						? (player.stats.MCGO.kills || 0) +
-						  (player.stats.MCGO.kills_deathmatch || 0)
-						: 0
-					: 0,
-			},
-			murderMystery: {
-				wins: player.stats
-					? player.stats.MurderMystery
-						? player.stats.MurderMystery.wins || 0
-						: 0
-					: 0,
-				kills: player.stats
-					? player.stats.MurderMystery
-						? player.stats.MurderMystery.kills || 0
-						: 0
-					: 0,
-			},
-			hypixelNetwork: {
-				level: playerStats.basic.networkLevel,
-				achievementPoints: playerStats.basic.achievementPoints,
-				karma: player.karma || 0,
-			},
-			pit: {
-				prestige: player.stats
-					? player.stats.Pit
-						? player.stats.Pit.profile
-							? player.stats.Pit.profile.prestiges
-								? player.stats.Pit.profile.prestiges.length || 0
-								: 0
-							: 0
-						: 0
-					: 0,
-			},
-		};
-
-		let requirementMet = {
-			basic: {
-				networkLevel: null,
-				bedwarsLevel: null,
-				bedwarsFKDR: null,
-				skywarsLevel: null,
-				skywarsKDR: null,
-				duelsWins: null,
-				achievementPoints: null,
-			},
-			major: {
-				bedwars: null,
-				skywars: null,
-				skyblock: null,
-				duels: null,
-				UHC: null,
-				blitz: null,
-				tnt: null,
-				buildBattle: null,
-				classic: null,
-				arcade: null,
-				copsAndCrims: null,
-				murderMystery: null,
-				hypixelNetwork: null,
-				pit: null,
-			},
-		};
-
-		const name = {
-			major: {
-				bedwars: "Bedwars",
-				skywars: "Skywars",
-				skyblock: "SkyBlock",
-				duels: "Duels",
-				UHC: "UHC",
-				blitz: "Blitz Survival Games",
-				tnt: "TNT Games",
-				buildBattle: "Build Battle",
-				classic: "Classic Games",
-				arcade: "Arcade Games",
-				copsAndCrims: "Cops and Crims",
-				murderMystery: "Murder Mystery",
-				hypixelNetwork: "Hypixel Network",
-				pit: "The Pit",
-			},
-		};
-
-		let majorResultStr = "";
-
-		for (const i in requirement) {
-			for (const j in requirement[i]) {
-				if (i === "basic") {
-					requirementMet[i][j] = objectiveMet(
-						playerStats[i][j],
-						requirement[i][j]
-					);
-				} else if (i === "major") {
-					const reqArr = Object.values(requirement[i][j]);
-					const statArr = Object.values(playerStats[i][j]);
-					let resultArr = [];
-
-					for (let t = 0; t < reqArr.length; t++) {
-						resultArr.push(objectiveMet(statArr[t], reqArr[t]));
-					}
-
-					requirementMet[i][j] = resultArr.indexOf("❌") >= 0 ? "❌" : "✔ ";
-
-					if (requirementMet[i][j] === "✔ ") {
-						majorResultStr += `✔ ${name[i][j]}\n`;
-					}
-				}
-			}
-		}
-
-		const totalRequirementsMet = {
-			basic:
-				Object.values(requirementMet.basic).indexOf("❌") >= 0 ? "❌" : "✅",
-			major:
-				Object.values(requirementMet.major).indexOf("✔ ") >= 0 ? "✅" : "❌",
-		};
-
-		const statCheckEmbed = new Discord.MessageEmbed({
-			color: "#32a852",
-			title: "Check List:",
-			description:
-				"This is a checklist which you can view and see what requirements you meet and if you can join our guild or not.",
-			fields: [
-				{
-					name: `${totalRequirementsMet.basic} Basic Requirements:`,
-					value: `\`\`\`\n${requirementMet.basic.networkLevel}Hypixel Network Level: ${playerStats.basic.networkLevel}\n${requirementMet.basic.bedwarsLevel}Bedwars Level: ${playerStats.basic.bedwarsLevel}\n${requirementMet.basic.bedwarsFKDR}Bedwars FKDR: ${playerStats.basic.bedwarsFKDR}\n${requirementMet.basic.skywarsLevel}Skywars Level: ${playerStats.basic.skywarsLevel}\n${requirementMet.basic.skywarsKDR}Skywars KDR: ${playerStats.basic.skywarsKDR}\n${requirementMet.basic.duelsWins}Duels Wins: ${playerStats.basic.duelsWins}\n${requirementMet.basic.achievementPoints}Achievement Points: ${playerStats.basic.achievementPoints}\`\`\``,
-				},
-				{
-					name: `${totalRequirementsMet.major} Major Requirements:`,
-					value: `\`\`\`${
-						majorResultStr ? majorResultStr : "No gamemode requirement met."
-					}\`\`\``,
-				},
-			],
-		});
-
-		await sentMsg.edit(statCheckEmbed);
+		return command(message, botMsg, args);
 	},
+	command,
 };

@@ -63,5 +63,22 @@
 		"pit": {
 			"prestige": 5
 		}
+	},
+	"minor": {
+		"bedwarsFKDR": 5,
+		"bedwarsWins": 800,
+		"bedwarsBBLR": 2,
+		"bedwarsWLR": 20,
+		"bedwarsLevel": 100,
+		"skywarsKDR": 5,
+		"skywarsWins": 850,
+		"skywarsKills": 1500,
+		"skywarsWLR": 2,
+		"skywarsLevel": 10,
+		"duelsWLR": 10,
+		"duelsKDR": 7,
+		"duelsWins": 1500,
+		"networkLevel": 200,
+		"achievementPoints": 12000
 	}
 }
