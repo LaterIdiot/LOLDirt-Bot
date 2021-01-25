@@ -1,6 +1,21 @@
 // module that allows dotenv files to be read
 require("dotenv").config();
 
+let maintenance = true;
+
+const MongoClient = require("mongodb").MongoClient;
+const uri = `mongodb+srv://${process.env.MONGO_DB_USERNAME}:${process.env.MONGO_DB_PASSWORD}@bot-storage.hfy3d.mongodb.net/botStorage?retryWrites=true&w=majority`;
+const clientdb = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true });
+clientdb.connect((err) => {
+	if (err) throw err;
+	const collection = clientdb.db("botStorage").collection("maintenance");
+	collection.findOne({}, (err, result) => {
+		if (err) throw err;
+		maintenance = result.maintenance;
+	});
+});
+
+
 // loads node modules
 const fs = require("fs");
 const Discord = require("discord.js");
@@ -38,7 +53,6 @@ client.once("ready", () => {
 	console.log("Ready!");
 });
 
-
 client.on("message", (message) => {
 	if (!message.content.startsWith(prefix) || message.author.bot) return;
 
@@ -52,6 +66,16 @@ client.on("message", (message) => {
 		);
 
 	if (!command) return;
+
+	if (maintenance && !(message.author.id === "396323699222904834")) {
+		return message.reply(
+			"Sorry I am on maintenance mode only my creator can send me commands."
+		);
+	}
+
+	if (command.botAdminOnly && !(message.author.id === "396323699222904834")) {
+		return message.reply("Sorry, but only for my creator.");
+	}
 
 	if (command.guildOnly && message.channel.type === "dm") {
 		return message.reply("I can't execute that command inside DMs!");
@@ -87,7 +111,9 @@ client.on("message", (message) => {
 
 		if (now < expirationTime) {
 			const timeLeft = ((expirationTime - now) / 1000).toFixed(1);
-			return message.reply(`please wait ${timeLeft} more second(s) before reusing the \`${command.name}\` command.`);
+			return message.reply(
+				`please wait ${timeLeft} more second(s) before reusing the \`${command.name}\` command.`
+			);
 		}
 	}
 
@@ -95,7 +121,22 @@ client.on("message", (message) => {
 	setTimeout(() => timestamps.delete(message.author.id), cooldownAmount);
 
 	try {
-		command.execute(message, args);
+		if (command.name === "maintenance") {
+			maintenance = command.execute(message, args);
+
+			const collection = clientdb.db("botStorage").collection("maintenance");
+			const query = { name: "maintenance" };
+			const newvalues = {$set: {maintenance: maintenance }};
+			collection.updateOne(query, newvalues, (err, result) => {
+				if (err) throw err;
+				console.log("1 document updated");
+				maintenance = result.maintenance;
+			});
+		} else {
+			command.execute(message, args);
+		}
+
+		console.log(maintenance);
 	} catch (error) {
 		console.error(error);
 		message.reply("there was an error trying to execute that command!");

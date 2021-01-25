@@ -1,6 +1,6 @@
 const { hypixelAPIKey } = require("../index");
 const { findPlayerData } = require("../helpers/playerData");
-const requirement = require("../requirement.json");
+const { requirement } = require("../config.json");
 const Discord = require("discord.js");
 const { Client } = require("@zikeji/hypixel");
 const hypixel = new Client(hypixelAPIKey);
@@ -176,7 +176,7 @@ async function command(message, sentMsg, args) {
 	if (!player) {
 		const playerError = new Discord.MessageEmbed({
 			color: "#ff0000",
-			title: "Error",
+			title: "Error:",
 			description: "Player does not exist on Hypixel Network.",
 			timestamp: new Date(),
 			footer: {
@@ -526,39 +526,39 @@ async function command(message, sentMsg, args) {
 		},
 	};
 
-	const name = {
+	const strings = {
 		major: {
-			bedwars: "Bedwars",
-			skywars: "Skywars",
-			skyblock: "SkyBlock",
-			duels: "Duels",
-			UHC: "UHC",
-			blitz: "Blitz Survival Games",
-			tnt: "TNT Games",
-			buildBattle: "Build Battle",
-			classic: "Classic Games",
-			arcade: "Arcade Games",
-			copsAndCrims: "Cops and Crims",
-			murderMystery: "Murder Mystery",
-			hypixelNetwork: "Hypixel Network",
-			pit: "The Pit",
+			bedwars: `Bedwars:\n    Level: ${playerStats.major.bedwars.level}\n    Final K/D: ${playerStats.major.bedwars.FKDR}`,
+			skywars: `Skywars:\n    Level: ${playerStats.major.skywars.level}\n    Wins: ${playerStats.major.skywars.wins}\n    K/D: ${playerStats.major.skywars.KDR}`,
+			skyblock: `SkyBlock:\n    Slayer XP: ${playerStats.major.skyblock.slayersXp}\n    Skill Average: ${playerStats.major.skyblock.skillAverage}`,
+			duels: `Duels:\n    Wins: ${playerStats.major.duels.wins}\n    W/L: ${playerStats.major.duels.WLR}\n    Kills: ${playerStats.major.duels.kills}`,
+			UHC: `UHC:\n    Wins: ${playerStats.major.UHC.wins}\n    K/D: ${playerStats.major.UHC.KDR}`,
+			blitz: `Blitz Survival Games:\n    Wins: ${playerStats.major.blitz.wins}\n    Kills: ${playerStats.major.blitz.kills}`,
+			tnt: `TNT Games:\n    Wins: ${playerStats.major.tnt.wins}`,
+			buildBattle: `Build Battle:\n    Score: ${playerStats.major.buildBattle.score}`,
+			classic: `Classic Games:\n    Wins: ${playerStats.major.classic.wins}`,
+			arcade: `Arcade Games:\n    Wins: ${playerStats.major.arcade.wins}`,
+			copsAndCrims: `Cops and Crims:\n    Wins: ${playerStats.major.copsAndCrims.wins}\n    Kills: ${playerStats.major.copsAndCrims.kills}`,
+			murderMystery: `Murder Mystery:\n    Wins: ${playerStats.major.murderMystery.wins}\n    Kills: ${playerStats.major.murderMystery.kills}`,
+			hypixelNetwork: `Hypixel Network:\n    Level: ${playerStats.major.hypixelNetwork.level}\n    Acheivement Points: ${playerStats.major.hypixelNetwork.achievementPoints}\n    Karma: ${playerStats.major.hypixelNetwork.karma}`,
+			pit: `The Pit:\n    Prestige: ${playerStats.major.pit.prestige}`,
 		},
 		minor: {
-			bedwarsFKDR: "Bedwars Final K/D",
-			bedwarsWins: "Bedwars Wins",
-			bedwarsBBLR: "Bedwars BBLR",
-			bedwarsWLR: "Bedwars W/L",
-			bedwarsLevel: "Bedwars Level",
-			skywarsKDR: "Skywars K/D",
-			skywarsWins: "Skywars Wins",
-			skywarsKills: "Skywars Kills",
-			skywarsWLR: "Skywars W/L",
-			skywarsLevel: "Skywars Level",
-			duelsWLR: "Duels W/L",
-			duelsKDR: "Duels K/D",
-			duelsWins: "Duels Wins",
-			networkLevel: "Hypixel Network Level",
-			achievementPoints: "Achievement Points",
+			bedwarsFKDR: `Bedwars Final K/D: ${playerStats.minor.bedwarsFKDR}`,
+			bedwarsWins: `Bedwars Wins: ${playerStats.minor.bedwarsWins}`,
+			bedwarsBBLR: `Bedwars BBLR: ${playerStats.minor.bedwarsBBLR}`,
+			bedwarsWLR: `Bedwars W/L: ${playerStats.minor.bedwarsWLR}`,
+			bedwarsLevel: `Bedwars Level: ${playerStats.minor.bedwarsLevel}`,
+			skywarsKDR: `Skywars K/D: ${playerStats.minor.skywarsKDR}`,
+			skywarsWins: `Skywars Wins: ${playerStats.minor.skywarsWins}`,
+			skywarsKills: `Skywars Kills: ${playerStats.minor.skywarsKills}`,
+			skywarsWLR: `Skywars W/L: ${playerStats.minor.skywarsWLR}`,
+			skywarsLevel: `Skywars Level: ${playerStats.minor.skywarsLevel}`,
+			duelsWLR: `Duels W/L: ${playerStats.minor.duelsWLR}`,
+			duelsKDR: `Duels K/D: ${playerStats.minor.duelsKDR}`,
+			duelsWins: `Duels Wins: ${playerStats.minor.duelsWins}`,
+			networkLevel: `Hypixel Network Level: ${playerStats.minor.networkLevel}`,
+			achievementPoints: `Achievement Points: ${playerStats.minor.achievementPoints}`,
 		},
 	};
 
@@ -586,7 +586,7 @@ async function command(message, sentMsg, args) {
 				requirementMet[i][j] = resultArr.indexOf("❌") >= 0 ? "❌" : "✔ ";
 
 				if (requirementMet[i][j] === "✔ ") {
-					majorResultStr += `✔ ${name[i][j]}\n`;
+					majorResultStr += `✔ ${strings[i][j]}\n`;
 				}
 			} else {
 				requirementMet[i][j] = objectiveMet(
@@ -595,7 +595,7 @@ async function command(message, sentMsg, args) {
 				);
 
 				if (requirementMet[i][j] === "✔ ") {
-					minorResultStr += `✔ ${name[i][j]}\n`;
+					minorResultStr += `✔ ${strings[i][j]}\n`;
 				}
 			}
 		}
@@ -642,11 +642,20 @@ async function command(message, sentMsg, args) {
 		},
 	});
 
-	return sentMsg.edit(statCheckEmbed);
+	await sentMsg.edit(statCheckEmbed);
+
+	return {
+		playerData,
+		basicResultStr,
+		majorResultStr,
+		minorResultStr,
+		totalRequirementsMet,
+		sentMsg,
+	};
 }
 
 module.exports = {
-	name: "check-stats",
+	name: "checkstats",
 	description:
 		"Checks your stats to see if you meet minimum requirements to get into our guild.",
 	args: true,
