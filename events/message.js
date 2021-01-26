@@ -1,6 +1,6 @@
 require("dotenv").config();
 const Discord = require("discord.js");
-const { prefix, dbname, change } = require("../index")
+const { prefix, dbname, change } = require("../index");
 
 module.exports = (message, client, clientdb, maintenance) => {
 	if (!message.content.startsWith(prefix) || message.author.bot) return;
@@ -18,12 +18,22 @@ module.exports = (message, client, clientdb, maintenance) => {
 
 	if (maintenance && !(message.author.id === "396323699222904834")) {
 		return message.reply(
-			"Sorry I am on maintenance mode only my creator can send me commands."
+			"Sorry, I am on maintenance mode only my creator can send me commands!"
 		);
 	}
 
-	if ((command.permission === "Bot Admin") && !(message.author.id === "396323699222904834")) {
-		return message.reply("Sorry, but only for my creator.");
+	if (command.permission) {
+		if (
+			command.permission === "Bot Admin" &&
+			!(message.author.id === "396323699222904834")
+		) {
+			return message.reply("Sorry, but only for my creator!");
+		} else if (
+			command.permission === "Server Admin" &&
+			!message.member.hasPermission("ADMINISTRATOR")
+		) {
+			return message.reply("Sorry, but only for server admins!");
+		}
 	}
 
 	if (command.guildOnly && message.channel.type === "dm") {
@@ -61,7 +71,7 @@ module.exports = (message, client, clientdb, maintenance) => {
 		if (now < expirationTime) {
 			const timeLeft = ((expirationTime - now) / 1000).toFixed(1);
 			return message.reply(
-				`please wait ${timeLeft} more second(s) before reusing the \`${command.name}\` command.`
+				`please wait ${timeLeft} more second(s) before reusing the \`${command.name}\` command!`
 			);
 		}
 	}
@@ -74,9 +84,7 @@ module.exports = (message, client, clientdb, maintenance) => {
 			maintenance = command.execute(message, args);
 			change(maintenance);
 
-			const collection = clientdb
-				.db(dbname)
-				.collection("maintenance");
+			const collection = clientdb.db(dbname).collection("maintenance");
 			const query = { name: "maintenance" };
 			const newvalues = { $set: { maintenance: maintenance } };
 			collection.updateOne(query, newvalues, (err, result) => {

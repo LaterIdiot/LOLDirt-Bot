@@ -8,7 +8,7 @@ module.exports = {
 	args: true,
 	usage: "<your_minecraft_username>",
 	guildOnly: true,
-	cooldown: 5,
+	cooldown: 1000,
 	async execute(message, args) {
 		try {
 			let loadingEmbed = new Discord.MessageEmbed({
@@ -22,7 +22,8 @@ module.exports = {
 			const sentSuccessEmbed = new Discord.MessageEmbed({
 				color: color.green,
 				title: "Success!",
-				description: "You have successfully started your application check your DM's!",
+				description:
+					"You have successfully started your application check your DM's!",
 				timestamp: new Date(),
 				footer: {
 					text: message.author.username,
@@ -101,7 +102,8 @@ module.exports = {
 
 			let application = new Discord.MessageEmbed({
 				color: color.purple,
-				title: `Applicant - ${playerData.name} | Discord: ${message.author.tag}`,
+				title: `Applicant - ${playerData.name}`,
+				description: `Discord: ${message.author}`,
 				fields: [
 					{
 						name: `${totalRequirementsMet.basic} Basic Requirements:`,
