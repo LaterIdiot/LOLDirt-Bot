@@ -1,10 +1,10 @@
 module.exports = {
 	name: "maintenance",
-	description: "Turns maintenence mode on or off",
+	description: "Turns maintenence mode on or off.",
 	args: true,
 	usage: "<state>",
 	cooldown: 1,
-	botAdminOnly: true,
+	permission: "Bot Admin",
 	execute(message, args) {
 		const state = args.shift();
 

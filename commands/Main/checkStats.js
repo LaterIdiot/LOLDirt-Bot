@@ -1,6 +1,6 @@
-const { hypixelAPIKey } = require("../index");
-const { findPlayerData } = require("../helpers/playerData");
-const { requirement } = require("../config.json");
+const { hypixelAPIKey } = require("../../index");
+const { findPlayerData } = require("../../helpers/playerData");
+const { requirement, color } = require("../../config.json");
 const Discord = require("discord.js");
 const { Client } = require("@zikeji/hypixel");
 const hypixel = new Client(hypixelAPIKey);
@@ -156,13 +156,13 @@ async function command(message, sentMsg, args) {
 
 	if (!playerData || !playerData.id || !playerData.name) {
 		const playerError = new Discord.MessageEmbed({
-			color: "#ff0000",
-			title: "Error:",
-			description: "Player does not exist.",
+			color: color.red,
+			title: "Failure!",
+			description: "Player does not exist!",
 			timestamp: new Date(),
 			footer: {
 				text: message.author.username,
-				icon_url: message.author.avatarURL(),
+				icon_url: message.author.avatarURL({ dynamic: true }),
 			},
 		});
 
@@ -175,13 +175,13 @@ async function command(message, sentMsg, args) {
 
 	if (!player) {
 		const playerError = new Discord.MessageEmbed({
-			color: "#ff0000",
-			title: "Error:",
-			description: "Player does not exist on Hypixel Network.",
+			color: color.red,
+			title: "Failure!",
+			description: "Player does not exist on the Hypixel Network!",
 			timestamp: new Date(),
 			footer: {
 				text: message.author.username,
-				icon_url: message.author.avatarURL(),
+				icon_url: message.author.avatarURL({ dynamic: true }),
 			},
 		});
 
@@ -613,8 +613,8 @@ async function command(message, sentMsg, args) {
 	};
 
 	const statCheckEmbed = new Discord.MessageEmbed({
-		color: "#32a852",
-		title: "Check List:",
+		color: color.green,
+		title: "Check List!",
 		description:
 			"This is a checklist which you can view and see what requirements you meet and if you can join our guild or not.",
 		fields: [
@@ -638,7 +638,7 @@ async function command(message, sentMsg, args) {
 		timestamp: new Date(),
 		footer: {
 			text: message.author.username,
-			icon_url: message.author.avatarURL(),
+			icon_url: message.author.avatarURL({ dynamic: true }),
 		},
 	});
 
@@ -664,9 +664,9 @@ module.exports = {
 	cooldown: 5,
 	async execute(message, args) {
 		let loadingEmbed = new Discord.MessageEmbed({
-			color: "#488bf7",
+			color: color.blue,
 			title: "Loading...",
-			description: "Loading player stats.",
+			description: "Loading player stats!",
 		});
 
 		const botMsg = await message.channel.send(message.author, loadingEmbed);

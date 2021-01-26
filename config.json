@@ -104,5 +104,12 @@
 			"networkLevel": 200,
 			"achievementPoints": 12000
 		}
+	},
+	"color": {
+		"red": "#ff0000",
+		"green": "#32a852",
+		"blue": "#488bf7",
+		"yellow": "#fcdb03",
+		"purple": "#8332d9"
 	}
 }
