@@ -2,7 +2,7 @@ require("dotenv").config();
 const Discord = require("discord.js");
 const { prefix, change } = require("../index");
 
-module.exports = (message, client, db, maintenance) => {
+module.exports = async (message, client, db, maintenance) => {
 	if (!message.content.startsWith(prefix) || message.author.bot) return;
 
 	const args = message.content.slice(prefix.length).trim().split(/ +/);
@@ -42,14 +42,18 @@ module.exports = (message, client, db, maintenance) => {
 		return message.reply("I can't execute that command inside DMs!");
 	}
 
-	/*
-	if (command.permissions) {
-		const authorPerms = message.channel.permissionsFor(message.author);
-		if (!authorPerms || !authorPerms.has(command.permissions)) {
-			return message.reply("You can not do this!");
-		}
+	if (
+		!args.length &&
+		!["verify", "help", "accept", "deny"].includes(command.name)
+	) {
+		const verified = await db.collection("verified");
+		const query = { discordID: message.author.id };
+		const result = await verified
+			.findOne(query)
+			.catch((err) => console.error(err));
+
+		if (result) args.push(result.username);
 	}
-	*/
 
 	// Manages argument requirements if there are any
 	if (command.args && !args.length) {

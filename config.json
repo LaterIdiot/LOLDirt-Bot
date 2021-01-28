@@ -3,11 +3,11 @@
 	"questions": [
 		{
 			"question": "How much GXP can you get weekly and can you consistently maintain that amount?",
-			"cooldown": 60
+			"cooldown": 100
 		},
 		{
 			"question": "Will you participate in the community - Be in calls, get in guild events and talk in guild chat?",
-			"cooldown": 60
+			"cooldown": 100
 		},
 		{
 			"question": "What are some quality traits about you, and have you done anything for us to insure your a good and non - toxic person?",

@@ -17,14 +17,26 @@ const clientdb = new MongoClient(uri, {
 });
 let db;
 
-clientdb.connect((err) => {
-	if (err) throw err;
-	db = clientdb.db(dbname);
-	db.collection("maintenance").findOne({}, (err, result) => {
-		if (err) throw err;
-		maintenance = result.maintenance;
-	});
-});
+clientdb
+	.connect()
+	.then(async (err, result) => {
+		db = clientdb.db(dbname);
+		maintenance = await db
+			.collection("maintenance")
+			.findOne({})
+			.catch((err) => console.error(err));
+
+		maintenance = maintenance.maintenance;
+		login();
+	})
+	.catch((err) => console.log(err));
+
+// db = clientdb.db(dbname);
+// 	db.collection("maintenance").findOne({}, (err, result) => {
+// 		if (err)
+// 			throw err;
+// 		maintenance = result.maintenance;
+// 	});
 
 module.exports = {
 	prefix,
@@ -58,13 +70,45 @@ for (const folder of commandFolders) {
 client.commands.set("help", require("./commands/help"));
 
 // sends console log ones bot is ready
-client.once("ready", () => {
+client.once("ready", async () => {
 	console.log("Ready!");
+	const verified = await db.collection("verified");
+	const verifiedUsers = await verified
+		.find({})
+		.toArray()
+		.catch((err) => console.error(err));
+	const guilds = client.guilds.cache.array();
+	const memebersIDArr = [];
+
+	for (const x of verifiedUsers) {
+		let exist = false;
+		for (let i of guilds) {
+			const members = i.members.cache.array();
+			let breakBool = false;
+			for (let j of members) {
+				if (j.id === x.discordID) {
+					exist = true;
+					breakBool = true;
+					break;
+				}
+			}
+			if (breakBool) break;
+		}
+
+		if (!exist) {
+			await verified.deleteOne(x).catch((err) => console.error(err));
+		}
+	}
 });
 
-const message = require("./events/message");
 client.on("message", (msg) => {
-	message(msg, client, db, maintenance);
+	require("./events/message")(msg, client, db, maintenance);
 });
 
-client.login(process.env.BOT_TOKEN);
+client.on("guildMemberRemove", (member) => {
+	require("./events/guildMemberRemove")(member, db);
+});
+
+function login() {
+	client.login(process.env.BOT_TOKEN);
+}

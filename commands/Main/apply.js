@@ -3,7 +3,7 @@ const { hypixelAPIKey } = require("../../index");
 const { Client } = require("@zikeji/hypixel");
 const hypixel = new Client(hypixelAPIKey);
 const checkStats = require("./checkStats");
-const { findPlayerData } = require("../../helpers/playerData");
+const findPlayerData = require("../../helpers/findPlayerData");
 const { questions, color, applyCooldown } = require("../../config.json");
 
 module.exports = {
@@ -80,13 +80,15 @@ module.exports = {
 
 				await message.channel.send(message.author, sentSuccessEmbed);
 
+				const embedTitle =
+					"This is an overview of the guild requirements you meet, however the outcome of this application is not determined by this overview and there will be exceptions made, good luck!";
 				const {
 					playerData,
 					basicResultStr,
 					majorResultStr,
 					minorResultStr,
 					totalRequirementsMet,
-				} = await checkStats.command(message, botMsg, args);
+				} = await checkStats.command(message, botMsg, args, embedTitle);
 
 				if (!playerData) {
 					const errorEmbed = new Discord.MessageEmbed({
@@ -134,7 +136,7 @@ module.exports = {
 							return false;
 						})
 						.catch(() => {
-							message.author.send(`${message.author}, Timed Out`);
+							message.author.send(`${message.author}, Time Out`);
 							return true;
 						});
 

@@ -1,5 +1,5 @@
 const { hypixelAPIKey } = require("../../index");
-const { findPlayerData } = require("../../helpers/playerData");
+const findPlayerData = require("../../helpers/findPlayerData");
 const { requirement, color } = require("../../config.json");
 const Discord = require("discord.js");
 const { Client } = require("@zikeji/hypixel");
@@ -151,11 +151,11 @@ function sb(skyblockProfilesList, playerData) {
 	return { skillAverage, slayersXp };
 }
 
-async function command(message, sentMsg, args) {
+async function command(message, sentMsg, args, embedTitle) {
 	const playerData = await findPlayerData(args.shift());
 
 	if (!playerData || !playerData.id || !playerData.name) {
-		const playerError = new Discord.MessageEmbed({
+		const playerFailureEmbed = new Discord.MessageEmbed({
 			color: color.red,
 			title: "Failure!",
 			description: "Player does not exist!",
@@ -166,7 +166,7 @@ async function command(message, sentMsg, args) {
 			},
 		});
 
-		return sentMsg.edit(playerError);
+		return sentMsg.edit(playerFailureEmbed);
 	}
 
 	const player = await hypixel.player
@@ -174,7 +174,7 @@ async function command(message, sentMsg, args) {
 		.catch((err) => console.error(err));
 
 	if (!player) {
-		const playerError = new Discord.MessageEmbed({
+		const playerFailureEmbed = new Discord.MessageEmbed({
 			color: color.red,
 			title: "Failure!",
 			description: "Player does not exist on the Hypixel Network!",
@@ -185,7 +185,7 @@ async function command(message, sentMsg, args) {
 			},
 		});
 
-		return sentMsg.edit(playerError);
+		return sentMsg.edit(playerFailureEmbed);
 	}
 
 	function objectiveMet(objective, goal) {
@@ -604,19 +604,18 @@ async function command(message, sentMsg, args) {
 	const basicResultStr = `${requirementMet.basic.networkLevel}Hypixel Network Level: ${playerStats.basic.networkLevel}\n${requirementMet.basic.bedwarsLevel}Bedwars Level: ${playerStats.basic.bedwarsLevel}\n${requirementMet.basic.bedwarsFKDR}Bedwars FKDR: ${playerStats.basic.bedwarsFKDR}\n${requirementMet.basic.skywarsLevel}Skywars Level: ${playerStats.basic.skywarsLevel}\n${requirementMet.basic.skywarsKDR}Skywars KDR: ${playerStats.basic.skywarsKDR}\n${requirementMet.basic.duelsWins}Duels Wins: ${playerStats.basic.duelsWins}\n${requirementMet.basic.achievementPoints}Achievement Points: ${playerStats.basic.achievementPoints}`;
 
 	const totalRequirementsMet = {
-		basic: Object.values(requirementMet.basic).includes("❌") ? "❌" : "✅",
-		major: Object.values(requirementMet.major).includes("✔ ") ? "✅" : "❌",
+		basic: Object.values(requirementMet.basic).includes("❌") ? "`❌`" : "`✔` ",
+		major: Object.values(requirementMet.major).includes("✔ ") ? "`✔` " : "`❌`",
 		minor:
 			Object.values(requirementMet.minor).filter((x) => x === "✔ ").length >= 2
-				? "✅"
-				: "❌",
+				? "`✔` "
+				: "`❌`",
 	};
 
 	const statCheckEmbed = new Discord.MessageEmbed({
 		color: color.green,
-		title: "Check List!",
-		description:
-			"This is a checklist which you can view and see what requirements you meet and if you can join our guild or not.",
+		title: `Check Stats - ${playerData.name}`,
+		description: embedTitle,
 		fields: [
 			{
 				name: `${totalRequirementsMet.basic} Basic Requirements:`,
@@ -670,8 +669,10 @@ module.exports = {
 		});
 
 		const botMsg = await message.channel.send(message.author, loadingEmbed);
+		const embedTitle =
+			"This is an overview of the guild requirements you meet, however it's NOT an application.";
 
-		return command(message, botMsg, args);
+		return command(message, botMsg, args, embedTitle);
 	},
 	command,
 };

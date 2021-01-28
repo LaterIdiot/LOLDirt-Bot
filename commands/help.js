@@ -122,10 +122,12 @@ module.exports = {
 		if (command.usage)
 			dataEmbed.description += `**Usage:** \`${prefix}${command.name} ${command.usage}\`\n`;
 		dataEmbed.description += `**Cooldown:** ${
-			command.cooldown || 3
-		} second(s)\n`;
+			typeof command.cooldown === "number" || command.cooldown === undefined
+				? `${command.cooldown || 3} second(s)\n`
+				: command.cooldown
+		}`;
 		if (command.permission)
-			dataEmbed.description += `**Permission** ${command.permission}`
+			dataEmbed.description += `**Permission** ${command.permission}`;
 
 		message.channel.send(message.author, dataEmbed);
 	},
