@@ -1,8 +1,8 @@
 require("dotenv").config();
 const Discord = require("discord.js");
-const { prefix, dbname, change } = require("../index");
+const { prefix, change } = require("../index");
 
-module.exports = (message, client, clientdb, maintenance) => {
+module.exports = (message, client, db, maintenance) => {
 	if (!message.content.startsWith(prefix) || message.author.bot) return;
 
 	const args = message.content.slice(prefix.length).trim().split(/ +/);
@@ -22,6 +22,7 @@ module.exports = (message, client, clientdb, maintenance) => {
 		);
 	}
 
+	// Manages command permissions
 	if (command.permission) {
 		if (
 			command.permission === "Bot Admin" &&
@@ -36,17 +37,21 @@ module.exports = (message, client, clientdb, maintenance) => {
 		}
 	}
 
+	// Manages whether the command is meant to be called in dm or not
 	if (command.guildOnly && message.channel.type === "dm") {
 		return message.reply("I can't execute that command inside DMs!");
 	}
 
+	/*
 	if (command.permissions) {
 		const authorPerms = message.channel.permissionsFor(message.author);
 		if (!authorPerms || !authorPerms.has(command.permissions)) {
 			return message.reply("You can not do this!");
 		}
 	}
+	*/
 
+	// Manages argument requirements if there are any
 	if (command.args && !args.length) {
 		let reply = `You didn't provide any arguments, ${message.author}!`;
 
@@ -57,41 +62,62 @@ module.exports = (message, client, clientdb, maintenance) => {
 		return message.channel.send(reply);
 	}
 
+	// Manages Cooldowns
 	if (!client.cooldowns.has(command.name)) {
 		client.cooldowns.set(command.name, new Discord.Collection());
 	}
 
-	const now = Date.now();
-	const timestamps = client.cooldowns.get(command.name);
-	const cooldownAmount = (command.cooldown || 3) * 1000;
+	const waitCollection = client.cooldowns.get(command.name);
 
-	if (timestamps.has(message.author.id)) {
-		const expirationTime = timestamps.get(message.author.id) + cooldownAmount;
+	if (command.cooldown === "dynamic") {
+		now = Date.now();
 
-		if (now < expirationTime) {
-			const timeLeft = ((expirationTime - now) / 1000).toFixed(1);
+		if (waitCollection.has(message.author.id)) {
 			return message.reply(
-				`please wait ${timeLeft} more second(s) before reusing the \`${command.name}\` command!`
+				"you have to complete your command instance before starting another!"
 			);
 		}
-	}
 
-	timestamps.set(message.author.id, now);
-	setTimeout(() => timestamps.delete(message.author.id), cooldownAmount);
+		waitCollection.set(message.author.id, "wait");
+	} else {
+		const now = Date.now();
+		const cooldownAmount = (command.cooldown || 3) * 1000;
+
+		if (waitCollection.has(message.author.id)) {
+			const expirationTime =
+				waitCollection.get(message.author.id) + cooldownAmount;
+
+			if (now < expirationTime) {
+				const timeLeft = ((expirationTime - now) / 1000).toFixed(1);
+				return message.reply(
+					`please wait ${timeLeft} more second(s) before reusing the \`${command.name}\` command!`
+				);
+			}
+		}
+
+		waitCollection.set(message.author.id, now);
+		setTimeout(() => waitCollection.delete(message.author.id), cooldownAmount);
+	}
 
 	try {
 		if (command.name === "maintenance") {
-			maintenance = command.execute(message, args);
+			maintenance = command.execute(message, args, db);
 			change(maintenance);
 
-			const collection = clientdb.db(dbname).collection("maintenance");
 			const query = { name: "maintenance" };
 			const newvalues = { $set: { maintenance: maintenance } };
-			collection.updateOne(query, newvalues, (err, result) => {
-				if (err) throw err;
-			});
+			db.collection("maintenance").updateOne(
+				query,
+				newvalues,
+				(err, result) => {
+					if (err) throw err;
+				}
+			);
 		} else {
-			command.execute(message, args);
+			command.execute(message, args, db).then(() => {
+				if (command.cooldown === "dynamic")
+					waitCollection.delete(message.author.id);
+			});
 		}
 	} catch (error) {
 		console.error(error);

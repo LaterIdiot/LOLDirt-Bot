@@ -1,6 +1,10 @@
 const Discord = require("discord.js");
+const { hypixelAPIKey } = require("../../index");
+const { Client } = require("@zikeji/hypixel");
+const hypixel = new Client(hypixelAPIKey);
 const checkStats = require("./checkStats");
-let { questions, color } = require("../../config.json");
+const { findPlayerData } = require("../../helpers/playerData");
+const { questions, color, applyCooldown } = require("../../config.json");
 
 module.exports = {
 	name: "apply",
@@ -8,44 +12,65 @@ module.exports = {
 	args: true,
 	usage: "<your_minecraft_username>",
 	guildOnly: true,
-	cooldown: 1000,
-	async execute(message, args) {
-		try {
-			let loadingEmbed = new Discord.MessageEmbed({
-				color: color.blue,
-				title: "Loading...",
-				description: "Loading player stats!",
-			});
+	cooldown: "dynamic",
+	async execute(message, args, db) {
+		const applicants = await db.collection("applicants");
+		const query = { username: args[0].toLowerCase() };
+		let applicantsData = await applicants
+			.findOne(query)
+			.catch((err) => console.error(err));
 
-			const botMsg = await message.author.send(message.author, loadingEmbed);
+		if (applicantsData) {
+			const now = Date.now();
 
-			const sentSuccessEmbed = new Discord.MessageEmbed({
-				color: color.green,
-				title: "Success!",
-				description:
-					"You have successfully started your application check your DM's!",
-				timestamp: new Date(),
-				footer: {
-					text: message.author.username,
-					icon_url: message.author.avatarURL({ dynamic: true }),
-				},
-			});
+			if (now - applicantsData.timestamp >= applyCooldown * 1000) {
+				applicantsData = null;
 
-			await message.channel.send(message.author, sentSuccessEmbed);
+				await applicants.deleteOne(query, (err) => {
+					if (err) throw err;
+				});
+			}
+		}
 
-			const {
-				playerData,
-				basicResultStr,
-				majorResultStr,
-				minorResultStr,
-				totalRequirementsMet,
-			} = await checkStats.command(message, botMsg, args);
+		const guild = await hypixel.guild.name("loldirt");
+		const uuid = await findPlayerData(args[0]);
 
-			if (!playerData) {
-				const errorEmbed = new Discord.MessageEmbed({
-					color: color.red,
-					title: "Failure!",
-					description: "Couldn't access player stats try again later!",
+		if (guild) {
+			if (guild.members) {
+				for (let x of guild.members) {
+					if (x.uuid.includes(uuid.id)) {
+						const alreadyFailureEmbed = new Discord.MessageEmbed({
+							color: color.red,
+							title: "Failure!",
+							description: "It looks like you are already in the guild!",
+							timestamp: new Date(),
+							footer: {
+								text: message.author.username,
+								icon_url: message.author.avatarURL({ dynamic: true }),
+							},
+						});
+
+						return message.channel.send(message.author, alreadyFailureEmbed);
+					}
+				}
+			}
+		}
+
+		if (!applicantsData) {
+			try {
+				let loadingEmbed = new Discord.MessageEmbed({
+					color: color.blue,
+					title: "Loading...",
+					description: "Loading player stats!",
+				});
+
+				const botMsg = await message.author.send(message.author, loadingEmbed);
+
+				const sentSuccessEmbed = new Discord.MessageEmbed({
+					color: color.green,
+					title: "Success!",
+					description:
+						"You have successfully started your application check your DM's!",
 					timestamp: new Date(),
 					footer: {
 						text: message.author.username,
@@ -53,116 +78,192 @@ module.exports = {
 					},
 				});
 
-				return message.author.send(message.author, errorEmbed);
-			}
+				await message.channel.send(message.author, sentSuccessEmbed);
 
-			let answers = [];
+				const {
+					playerData,
+					basicResultStr,
+					majorResultStr,
+					minorResultStr,
+					totalRequirementsMet,
+				} = await checkStats.command(message, botMsg, args);
 
-			let questionEmbed = new Discord.MessageEmbed({
-				color: color.yellow,
-				title: "Queston!",
-				description: null,
-				timestamp: new Date(),
-				footer: {
-					text: message.author.username,
-					icon_url: message.author.avatarURL({ dynamic: true }),
-				},
-			});
-
-			for (let x of questions) {
-				questionEmbed.description = x.question;
-
-				await message.author.send(message.author, questionEmbed);
-				const wait = await message.author.dmChannel
-					.awaitMessages((m) => m.author.id === message.author.id, {
-						max: 1,
-						time: x.cooldown * 1000,
-						errors: ["time"],
-					})
-					.then((collected) => {
-						answers.push({
-							question: x.question,
-							answer: collected.first().content,
-						});
-						return false;
-					})
-					.catch(() => {
-						message.author.send(`${message.author}, Timed Out`);
-						return true;
+				if (!playerData) {
+					const errorEmbed = new Discord.MessageEmbed({
+						color: color.red,
+						title: "Failure!",
+						description: "Couldn't access player stats try again later!",
+						timestamp: new Date(),
+						footer: {
+							text: message.author.username,
+							icon_url: message.author.avatarURL({ dynamic: true }),
+						},
 					});
 
-				if (wait) return;
+					return message.author.send(message.author, errorEmbed);
+				}
+
+				let answers = [];
+
+				let questionEmbed = new Discord.MessageEmbed({
+					color: color.yellow,
+					title: "Queston!",
+					description: null,
+					timestamp: new Date(),
+					footer: {
+						text: message.author.username,
+						icon_url: message.author.avatarURL({ dynamic: true }),
+					},
+				});
+
+				for (let x of questions) {
+					questionEmbed.description = x.question;
+
+					await message.author.send(message.author, questionEmbed);
+					const wait = await message.author.dmChannel
+						.awaitMessages((m) => m.author.id === message.author.id, {
+							max: 1,
+							time: x.cooldown * 1000,
+							errors: ["time"],
+						})
+						.then((collected) => {
+							answers.push({
+								question: x.question,
+								answer: collected.first().content,
+							});
+							return false;
+						})
+						.catch(() => {
+							message.author.send(`${message.author}, Timed Out`);
+							return true;
+						});
+
+					if (wait) return;
+				}
+
+				let formStr = "";
+
+				for (let i of answers) {
+					formStr += `Q: ${i.question}\nA: ${i.answer}\n\n`;
+				}
+
+				let application = new Discord.MessageEmbed({
+					color: color.purple,
+					title: `Applicant - ${playerData.name}`,
+					description: `Discord: ${message.author}`,
+					fields: [
+						{
+							name: `${totalRequirementsMet.basic} Basic Requirements:`,
+							value: `\`\`\`\n${basicResultStr}\`\`\``,
+						},
+						{
+							name: `${totalRequirementsMet.major} Major Requirements:`,
+							value: `\`\`\`\n${
+								majorResultStr ? majorResultStr : "No gamemode requirement met."
+							}\`\`\``,
+						},
+						{
+							name: `${totalRequirementsMet.minor} Minor Requirements:`,
+							value: `\`\`\`\n${
+								minorResultStr ? minorResultStr : "No requirement met."
+							}\`\`\``,
+						},
+						{
+							name: `Form:`,
+							value: `\`\`\`\n${formStr}\`\`\``,
+						},
+					],
+					timestamp: new Date(),
+					footer: {
+						text: message.author.username,
+						icon_url: message.author.avatarURL({ dynamic: true }),
+					},
+				});
+
+				await message.guild.channels.cache
+					.find((i) => i.name === "ℹ-guild-application-log")
+					.send(application);
+
+				const successEmbed = new Discord.MessageEmbed({
+					color: color.green,
+					title: "Success!",
+					description: "Your application has been submitted successfuly!",
+					timestamp: new Date(),
+					footer: {
+						text: message.author.username,
+						icon_url: message.author.avatarURL({ dynamic: true }),
+					},
+				});
+
+				const applicantData = {
+					type: "processing",
+					timestamp: Date.now(),
+					username: playerData.name.toLowerCase(),
+					discordID: message.author.id,
+				};
+
+				await applicants
+					.insertOne(applicantData)
+					.catch((err) => console.log(err));
+
+				return message.author.send(message.author, successEmbed);
+			} catch (error) {
+				const failureEmbed = new Discord.MessageEmbed({
+					color: color.red,
+					title: "Failure!",
+					description:
+						"It seems like I can't DM you! You might have `Allow direct messages from server members.` disabled in the server `Privacy Settings`!",
+					timestamp: new Date(),
+					footer: {
+						text: message.author.username,
+						icon_url: message.author.avatarURL({ dynamic: true }),
+					},
+				});
+
+				return message.channel.send(message.author, failureEmbed);
 			}
+		} else {
+			const cooldownEmbed = new Discord.MessageEmbed({
+				color: color.blue,
+				title: "Cooldown!",
+				timestamp: new Date(),
+				footer: {
+					text: message.author.username,
+					icon_url: message.author.avatarURL({ dynamic: true }),
+				},
+			});
 
-			let formStr = "";
+			if (applicantsData.type === "denied") {
+				const now = Math.floor(Date.now() / 1000);
+				const timestamp = Math.floor(applicantsData.timestamp / 1000);
+				let timeLeft;
+				const days = (applyCooldown - (now - timestamp)) / 60 / 60 / 24;
+				const hours = (applyCooldown - (now - timestamp)) / 60 / 60;
+				const minutes = (applyCooldown - (now - timestamp)) / 60;
+				const seconds = applyCooldown - (now - timestamp);
 
-			for (let i of answers) {
-				formStr += `Q: ${i.question}\nA: ${i.answer}\n\n`;
+				if (days >= 1) {
+					cooldownEmbed.description = `Your application was denied and you can apply again in ${Math.floor(
+						days
+					)} days!`;
+				} else if (hours >= 1) {
+					cooldownEmbed.description = `Your application was denied and you can apply again in ${Math.floor(
+						hours
+					)} hours!`;
+				} else if (minutes >= 1) {
+					cooldownEmbed.description = `Your application was denied and you can apply again in ${Math.floor(
+						minutes
+					)} minutes!`;
+				} else {
+					cooldownEmbed.description = `Your application was denied and you can apply again in ${seconds} seconds!`;
+				}
+
+				return message.channel.send(message.author, cooldownEmbed);
+			} else if (applicantsData.type === "processing") {
+				cooldownEmbed.description =
+					"Your application is still being processed!";
+				return message.channel.send(message.author, cooldownEmbed);
 			}
-
-			let application = new Discord.MessageEmbed({
-				color: color.purple,
-				title: `Applicant - ${playerData.name}`,
-				description: `Discord: ${message.author}`,
-				fields: [
-					{
-						name: `${totalRequirementsMet.basic} Basic Requirements:`,
-						value: `\`\`\`\n${basicResultStr}\`\`\``,
-					},
-					{
-						name: `${totalRequirementsMet.major} Major Requirements:`,
-						value: `\`\`\`\n${
-							majorResultStr ? majorResultStr : "No gamemode requirement met."
-						}\`\`\``,
-					},
-					{
-						name: `${totalRequirementsMet.minor} Minor Requirements:`,
-						value: `\`\`\`\n${
-							minorResultStr ? minorResultStr : "No requirement met."
-						}\`\`\``,
-					},
-					{
-						name: `Form:`,
-						value: `\`\`\`\n${formStr}\`\`\``,
-					},
-				],
-				timestamp: new Date(),
-				footer: {
-					text: message.author.username,
-					icon_url: message.author.avatarURL({ dynamic: true }),
-				},
-			});
-
-			await message.guild.channels.cache
-				.find((i) => i.name === "ℹ-guild-application-log")
-				.send(application);
-
-			const successEmbed = new Discord.MessageEmbed({
-				color: color.green,
-				title: "Success!",
-				description: "Your application has been submitted successfuly!",
-				timestamp: new Date(),
-				footer: {
-					text: message.author.username,
-					icon_url: message.author.avatarURL({ dynamic: true }),
-				},
-			});
-
-			return message.author.send(message.author, successEmbed);
-		} catch (error) {
-			const failureEmbed = new Discord.MessageEmbed({
-				color: color.red,
-				title: "Failure!",
-				description:
-					"It seems like I can't DM you! You might have `Allow direct messages from server members.` disabled in the server `Privacy Settings`!",
-				timestamp: new Date(),
-				footer: {
-					text: message.author.username,
-					icon_url: message.author.avatarURL({ dynamic: true }),
-				},
-			});
-
-			return message.channel.send(message.author, failureEmbed);
 		}
 	},
 };

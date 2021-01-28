@@ -9,31 +9,30 @@ const dbname = process.env.MONGO_DB_DB;
 // makes prefix and hypixelAPIKey available to whoever refrences this file
 let maintenance = true;
 
-module.exports = {
-	prefix,
-	hypixelAPIKey,
-	dbname,
-	change(boolean) {
-		maintenance = boolean;
-	},
-};
-
 const MongoClient = require("mongodb").MongoClient;
 const uri = `mongodb+srv://${process.env.MONGO_DB_USERNAME}:${process.env.MONGO_DB_PASSWORD}@bot-storage.hfy3d.mongodb.net/${dbname}?retryWrites=true&w=majority`;
 const clientdb = new MongoClient(uri, {
 	useNewUrlParser: true,
 	useUnifiedTopology: true,
 });
+let db;
+
 clientdb.connect((err) => {
 	if (err) throw err;
-	const collection = clientdb
-		.db(dbname)
-		.collection("maintenance");
-	collection.findOne({}, (err, result) => {
+	db = clientdb.db(dbname);
+	db.collection("maintenance").findOne({}, (err, result) => {
 		if (err) throw err;
 		maintenance = result.maintenance;
 	});
 });
+
+module.exports = {
+	prefix,
+	hypixelAPIKey,
+	change(boolean) {
+		maintenance = boolean;
+	},
+};
 
 const Discord = require("discord.js");
 const client = new Discord.Client();
@@ -56,7 +55,7 @@ for (const folder of commandFolders) {
 	}
 }
 
-client.commands.set('help', require("./commands/help"))
+client.commands.set("help", require("./commands/help"));
 
 // sends console log ones bot is ready
 client.once("ready", () => {
@@ -65,7 +64,7 @@ client.once("ready", () => {
 
 const message = require("./events/message");
 client.on("message", (msg) => {
-	message(msg, client, clientdb, maintenance);
+	message(msg, client, db, maintenance);
 });
 
 client.login(process.env.BOT_TOKEN);

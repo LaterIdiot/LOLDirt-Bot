@@ -1,4 +1,5 @@
 {
+	"applyCooldown": 604800,
 	"questions": [
 		{
 			"question": "How much GXP can you get weekly and can you consistently maintain that amount?",

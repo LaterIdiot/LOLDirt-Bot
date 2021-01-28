@@ -3,8 +3,8 @@ const { color } = require("../../config.json");
 const getUserFromMention = require("../../helpers/getUserFromMention");
 
 module.exports = {
-	name: "accept",
-	description: "Sends an accept message to whoever is mentioned.",
+	name: "deny",
+	description: "Sends an deny message to whoever is mentioned.",
 	args: true,
 	guildOnly: true,
 	usage: "<mention> [note(s)]",
@@ -26,10 +26,10 @@ module.exports = {
 					applicantsData &&
 					!(applicantsData ? applicantsData.type === "denied" : false)
 				) {
-					const acceptedEmbed = new Discord.MessageEmbed({
-						color: color.green,
-						title: "🎉 CONGRATS! 🎉",
-						description: `Your guild application has been ACCEPTED!\n\n${
+					const deniedEmbed = new Discord.MessageEmbed({
+						color: color.red,
+						title: "Sorry :(",
+						description: `Your guild application has been Denied!\n\n${
 							args[0]
 								? `**Notes From ${message.author}:** ${args.join(" ")}`
 								: ""
@@ -42,7 +42,7 @@ module.exports = {
 					});
 
 					try {
-						await mentionedUser.send(mentionedUser, acceptedEmbed);
+						await mentionedUser.send(mentionedUser, deniedEmbed);
 					} catch {
 						const sendingFailureEmbed = new Discord.MessageEmbed({
 							color: color.red,
@@ -62,7 +62,7 @@ module.exports = {
 					const sentSuccessEmbed = new Discord.MessageEmbed({
 						color: color.green,
 						title: "Success!",
-						description: `Successfully notified ${mention} that they have been ACCEPTED!`,
+						description: `Successfully notified ${mention} that they have been Denied!`,
 						timestamp: new Date(),
 						footer: {
 							text: message.author.username,
@@ -70,7 +70,11 @@ module.exports = {
 						},
 					});
 
-					await applicants.deleteOne(query).catch((err) => console.error(err));
+					const newvalues = { $set: { timestamp: Date.now(), type: "denied" } };
+
+					await applicants
+						.updateOne(query, newvalues)
+						.catch((err) => console.error(err));
 
 					return message.channel.send(message.author, sentSuccessEmbed);
 				} else {
@@ -78,7 +82,7 @@ module.exports = {
 						color: color.red,
 						title: "Failure!",
 						description:
-							"This person hasn't submitted an application or is already accepted!",
+							"This person hasn't submitted an application or is already denied!",
 						timestamp: new Date(),
 						footer: {
 							text: message.author.username,
