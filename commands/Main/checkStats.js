@@ -154,11 +154,11 @@ function sb(skyblockProfilesList, playerData) {
 async function command(message, sentMsg, args, embedTitle) {
 	const playerData = await findPlayerData(args.shift());
 
-	if (!playerData || !playerData.id || !playerData.name) {
+	if (!playerData) {
 		const playerFailureEmbed = new Discord.MessageEmbed({
 			color: color.red,
 			title: "Failure!",
-			description: "Player does not exist!",
+			description: "Player does not exist or the Mojang API is down!",
 			timestamp: new Date(),
 			footer: {
 				text: message.author.username,
@@ -169,15 +169,16 @@ async function command(message, sentMsg, args, embedTitle) {
 		return sentMsg.edit(playerFailureEmbed);
 	}
 
-	const player = await hypixel.player
-		.uuid(playerData.id)
-		.catch((err) => console.error(err));
+	const player = await hypixel.player.uuid(playerData.id).catch(() => {
+		return null;
+	});
 
 	if (!player) {
 		const playerFailureEmbed = new Discord.MessageEmbed({
 			color: color.red,
 			title: "Failure!",
-			description: "Player does not exist on the Hypixel Network!",
+			description:
+				"Player does not exist on the Hypixel Network or the Hypixel API is down!",
 			timestamp: new Date(),
 			footer: {
 				text: message.author.username,

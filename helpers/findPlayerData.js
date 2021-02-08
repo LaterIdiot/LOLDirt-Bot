@@ -12,5 +12,9 @@ module.exports = async (username) => {
 			return null;
 		});
 
-	return playerData;
+	if (playerData.id || playerData.name) {
+		return playerData;
+	} else {
+		return null;
+	}
 };

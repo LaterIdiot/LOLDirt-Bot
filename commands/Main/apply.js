@@ -14,6 +14,14 @@ module.exports = {
 	guildOnly: true,
 	cooldown: "dynamic",
 	async execute(message, args, db) {
+		let loadingEmbed = new Discord.MessageEmbed({
+			color: color.blue,
+			title: "Loading...",
+			description: "Loading player stats!",
+		});
+
+		const sentMsg = await message.channel.send(message.author, loadingEmbed);
+
 		const applicants = await db.collection("applicants");
 		const query = { username: args[0].toLowerCase() };
 		let applicantsData = await applicants
@@ -32,7 +40,9 @@ module.exports = {
 			}
 		}
 
-		const guild = await hypixel.guild.name("loldirt");
+		const guild = await hypixel.guild.name("loldirt").catch(() => {
+			return null;
+		});
 		const uuid = await findPlayerData(args[0]);
 
 		if (guild) {
@@ -50,10 +60,24 @@ module.exports = {
 							},
 						});
 
-						return message.channel.send(message.author, alreadyFailureEmbed);
+						return sentMsg.edit(message.author, alreadyFailureEmbed);
 					}
 				}
 			}
+		} else {
+			const apiNoteEmbed = new Discord.MessageEmbed({
+				color: color.yellow,
+				title: "Note!",
+				description:
+					"Can't access guild because the Hypixel API is down so, I couldn't check if you already exist in the guild or not and started the application anyway!",
+				timestamp: new Date(),
+				footer: {
+					text: message.author.username,
+					icon_url: message.author.avatarURL({ dynamic: true }),
+				},
+			});
+
+			await message.channel.send(message.author, apiNoteEmbed);
 		}
 
 		if (!applicantsData) {
@@ -78,7 +102,7 @@ module.exports = {
 					},
 				});
 
-				await message.channel.send(message.author, sentSuccessEmbed);
+				await sentMsg.edit(message.author, sentSuccessEmbed);
 
 				const embedTitle =
 					"This is an overview of the guild requirements you meet, however the outcome of this application is not determined by this overview and there will be exceptions made, good luck!";
