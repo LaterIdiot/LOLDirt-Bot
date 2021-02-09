@@ -295,15 +295,56 @@ async function command(message, sentMsg, args, embedTitle) {
 		UHC: {
 			wins: player.stats
 				? player.stats.UHC
-					? player.stats.UHC.wins || 0
+					? (player.stats.UHC.wins || 0) +
+					  (player.stats.UHC.wins_solo || 0) +
+					  (player.stats.UHC["wins_red vs blue"] || 0) +
+					  (player.stats.UHC["wins_no diamonds"] || 0) +
+					  (player.stats.UHC["wins_vanilla doubles"] || 0) +
+					  (player.stats.UHC.wins_brawl || 0) +
+					  (player.stats.UHC["wins_solo brawl"] || 0) +
+					  (player.stats.UHC["wins_duo brawl"] || 0)
 					: 0
 				: 0,
 			KDR: player.stats
 				? player.stats.UHC
 					? ![Infinity, NaN, 0].includes(
-							(player.stats.UHC.kills || 0) / (player.stats.UHC.deaths || 0)
+							((player.stats.UHC.kills || 0) +
+								(player.stats.UHC.kills_solo || 0) +
+								(player.stats.UHC["kills_red vs blue"] || 0) +
+								(player.stats.UHC["kills_no diamonds"] || 0) +
+								(player.stats.UHC["kills_vanilla doubles"] || 0) +
+								(player.stats.UHC.kills_brawl || 0) +
+								(player.stats.UHC["kills_solo brawl"] || 0) +
+								(player.stats.UHC["kills_duo brawl"] || 0)) /
+								((player.stats.UHC.deaths || 0) +
+									(player.stats.UHC.deaths_solo || 0) +
+									(player.stats.UHC["deaths_red vs blue"] || 0) +
+									(player.stats.UHC["deaths_no diamonds"] || 0) +
+									(player.stats.UHC["deaths_vanilla doubles"] || 0) +
+									(player.stats.UHC.deaths_brawl || 0) +
+									(player.stats.UHC["deaths_solo brawl"] || 0) +
+									(player.stats.UHC["deaths_duo brawl"] || 0))
 					  )
-						? (player.stats.UHC.kills || 0) / (player.stats.UHC.deaths || 0)
+						? Number(
+								(
+									((player.stats.UHC.kills || 0) +
+										(player.stats.UHC.kills_solo || 0) +
+										(player.stats.UHC["kills_red vs blue"] || 0) +
+										(player.stats.UHC["kills_no diamonds"] || 0) +
+										(player.stats.UHC["kills_vanilla doubles"] || 0) +
+										(player.stats.UHC.kills_brawl || 0) +
+										(player.stats.UHC["kills_solo brawl"] || 0) +
+										(player.stats.UHC["kills_duo brawl"] || 0)) /
+									((player.stats.UHC.deaths || 0) +
+										(player.stats.UHC.deaths_solo || 0) +
+										(player.stats.UHC["deaths_red vs blue"] || 0) +
+										(player.stats.UHC["deaths_no diamonds"] || 0) +
+										(player.stats.UHC["deaths_vanilla doubles"] || 0) +
+										(player.stats.UHC.deaths_brawl || 0) +
+										(player.stats.UHC["deaths_solo brawl"] || 0) +
+										(player.stats.UHC["deaths_duo brawl"] || 0))
+								).toFixed(2)
+						  )
 						: 0
 					: 0
 				: 0,
