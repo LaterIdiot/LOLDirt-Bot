@@ -703,6 +703,7 @@ module.exports = {
 	usage: "<username>",
 	guildOnly: false,
 	cooldown: 5,
+	allowVerified: true,
 	async execute(message, args) {
 		let loadingEmbed = new Discord.MessageEmbed({
 			color: color.blue,

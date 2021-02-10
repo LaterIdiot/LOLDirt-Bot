@@ -1,6 +1,8 @@
 require("dotenv").config();
 const Discord = require("discord.js");
 const { prefix, change } = require("../index");
+const getUserFromMention = require("../helpers/getUserFromMention");
+const { color } = require("../config.json");
 
 module.exports = async (message, client, db, maintenance) => {
 	if (!message.content.startsWith(prefix) || message.author.bot) return;
@@ -42,10 +44,7 @@ module.exports = async (message, client, db, maintenance) => {
 		return message.reply("I can't execute that command inside DMs!");
 	}
 
-	if (
-		!args.length &&
-		!["verify", "help", "accept", "deny"].includes(command.name)
-	) {
+	if (!args.length && command.allowVerified) {
 		const verified = await db.collection("verified");
 		const query = { discordID: message.author.id };
 		const result = await verified
@@ -64,6 +63,43 @@ module.exports = async (message, client, db, maintenance) => {
 		}
 
 		return message.channel.send(reply);
+	}
+
+	let mentionedUser = null;
+	if (command.mention) {
+		let mention = args.shift().match(Discord.MessageMentions.USERS_PATTERN);
+		if (mention) {
+			mentionedUser = getUserFromMention(mention.shift(), message);
+
+			if (!mentionedUser) {
+				const sendingFailureEmbed = new Discord.MessageEmbed({
+					color: color.red,
+					title: "Failure!",
+					description:
+						"Sorry, the person you mentioned is not in this server, so I can't run this command!",
+					timestamp: new Date(),
+					footer: {
+						text: message.author.username,
+						icon_url: message.author.avatarURL({ dynamic: true }),
+					},
+				});
+
+				return message.channel.send(message.author, sendingFailureEmbed);
+			}
+		} else {
+			const mentionFailureEmbed = new Discord.MessageEmbed({
+				color: color.red,
+				title: "Failure!",
+				description: `You didn't mention anyone, please mention someone to run this command, and the correct usage is \`${prefix}${command.name} ${command.usage}\`!`,
+				timestamp: new Date(),
+				footer: {
+					text: message.author.username,
+					icon_url: message.author.avatarURL({ dynamic: true }),
+				},
+			});
+
+			return message.channel.send(message.author, mentionFailureEmbed);
+		}
 	}
 
 	// Manages Cooldowns
@@ -118,7 +154,7 @@ module.exports = async (message, client, db, maintenance) => {
 				}
 			);
 		} else {
-			command.execute(message, args, db).then(() => {
+			command.execute(message, args, db, mentionedUser).then(() => {
 				if (command.cooldown === "dynamic")
 					waitCollection.delete(message.author.id);
 			});

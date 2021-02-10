@@ -1,4 +1,4 @@
-module.exports = (mention, client) => {
+module.exports = (mention, message) => {
 	if (!mention) return;
 
 	if (mention.startsWith("<@") && mention.endsWith(">")) {
@@ -8,6 +8,6 @@ module.exports = (mention, client) => {
 			mention = mention.slice(1);
 		}
 
-		return client.users.cache.get(mention);
+		return message.guild.members.cache.get(mention).user;
 	}
 };

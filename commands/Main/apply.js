@@ -12,6 +12,7 @@ module.exports = {
 	args: true,
 	usage: "<your_minecraft_username>",
 	guildOnly: true,
+	allowVerified: true,
 	cooldown: "dynamic",
 	async execute(message, args, db) {
 		let loadingEmbed = new Discord.MessageEmbed({
