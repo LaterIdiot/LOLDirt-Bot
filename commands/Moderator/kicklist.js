@@ -48,7 +48,7 @@ module.exports = {
                 description: "Mojang API seems to be down, try again later!",
             });
 
-            sentMsg.edit(failureEmbed);
+            return sentMsg.edit(failureEmbed);
         }
 
         let playersListStr = "";
