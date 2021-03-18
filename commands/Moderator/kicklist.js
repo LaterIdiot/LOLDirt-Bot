@@ -10,6 +10,7 @@ module.exports = {
     description:
         "List's all players that don't meet the weekly GXP requirement.",
     guildOnly: true,
+    cooldown: 120,
     usage: "<mention> [note(s)]",
     permission: "Server Admin",
     async execute(message) {
