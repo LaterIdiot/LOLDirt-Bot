@@ -190,7 +190,7 @@ module.exports = {
                     return sentMsg.edit(unignoreFailureEmbed);
                 }
             } else {
-                const argsFailureEmbed = Discord.MessageEmbed({
+                const argsFailureEmbed = new Discord.MessageEmbed({
                     color: color.red,
                     title: "Failure!",
                     description: `The option you provided was invalid!`,
