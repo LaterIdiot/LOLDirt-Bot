@@ -26,8 +26,10 @@ module.exports = {
             loadingEmbed
         );
 
+        const username = args[0].toLowerCase();
+
         const applicants = await db.collection("applicants");
-        const query = { username: args[0].toLowerCase() };
+        const query = { discordID: message.author.id };
         let applicantsData = await applicants
             .findOne(query)
             .catch((err) => console.error(err));
@@ -47,7 +49,7 @@ module.exports = {
         const guild = await hypixel.guild.name("loldirt").catch(() => {
             return null;
         });
-        const uuid = await findPlayerData(args[0]);
+        const uuid = await findPlayerData(username);
 
         if (guild) {
             if (guild.members) {
@@ -115,7 +117,7 @@ module.exports = {
                     },
                 });
 
-                await sentMsg.edit(message.author, sentSuccessEmbed);
+                await sentMsg.edit(sentSuccessEmbed);
 
                 const embedTitle =
                     "This is an overview of the guild requirements you meet, however the outcome of this application is not determined by this overview and there will be exceptions made, good luck!";
@@ -192,8 +194,8 @@ module.exports = {
                     formStr += `Q: ${i.question}\nA: ${i.answer}\n\n`;
                 }
 
-                let application = new Discord.MessageEmbed({
-                    color: color.darkBlue,
+                const application = new Discord.MessageEmbed({
+                    color: color.purple,
                     title: `Applicant - ${playerData.name}`,
                     description: `Discord: ${message.author}`,
                     fields: [
@@ -273,6 +275,22 @@ module.exports = {
                 return message.channel.send(message.author, failureEmbed);
             }
         } else {
+            if (applicantsData.username !== username) {
+                const appliedFailureEmbed = new Discord.MessageEmbed({
+                    color: color.red,
+                    title: "Failure!",
+                    description:
+                        "You have already applied with a different username, you can only have one application at a time!",
+                    timestamp: new Date(),
+                    footer: {
+                        text: message.author.username,
+                        icon_url: message.author.avatarURL({ dynamic: true }),
+                    },
+                });
+
+                return sentMsg.edit(appliedFailureEmbed);
+            }
+
             const cooldownEmbed = new Discord.MessageEmbed({
                 color: color.blue,
                 title: "Cooldown!",
@@ -308,11 +326,11 @@ module.exports = {
                     cooldownEmbed.description = `Your application was denied and you can apply again in ${seconds} seconds!`;
                 }
 
-                return message.channel.send(message.author, cooldownEmbed);
+                return sentMsg.edit(cooldownEmbed);
             } else if (applicantsData.type === "processing") {
                 cooldownEmbed.description =
                     "Your application is still being processed!";
-                return message.channel.send(message.author, cooldownEmbed);
+                return sentMsg.edit(cooldownEmbed);
             }
         }
     },

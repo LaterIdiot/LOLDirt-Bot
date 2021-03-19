@@ -209,7 +209,8 @@ module.exports = {
             let kicklistIgnoreIdArr = await kicklistIgnore
                 .find({})
                 .toArray()
-                .then((result) => result.map((i) => i.uuid));
+                .then((res) => res.map((i) => i.uuid))
+                .catch((err) => console.error(err));
 
             const guild = await hypixel.guild.name("loldirt").catch(() => {
                 return null;
@@ -265,7 +266,7 @@ module.exports = {
             });
 
             const kicklistEmbed = new Discord.MessageEmbed({
-                color: color.darkBlue,
+                color: color.orange,
                 title: "Kick List!",
                 description: `List of all players that made less than ${numFormat(
                     weeklyGxpRequirement

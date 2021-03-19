@@ -60,7 +60,7 @@ module.exports = {
             const sentSuccessEmbed = new Discord.MessageEmbed({
                 color: color.green,
                 title: "Success!",
-                description: `Successfully notified ${mention} that they have been Denied!`,
+                description: `Successfully notified ${mentionedUser} that they have been Denied!`,
                 timestamp: new Date(),
                 footer: {
                     text: message.author.username,

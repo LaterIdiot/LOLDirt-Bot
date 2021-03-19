@@ -126,7 +126,9 @@ module.exports = {
         dataEmbed.description += `**Cooldown:** ${
             typeof command.cooldown === "number" ||
             command.cooldown === undefined
-                ? `${command.cooldown || 3} second(s)\n`
+                ? `${
+                      command.cooldown === undefined ? 3 : command.cooldown
+                  } second(s)\n`
                 : command.cooldown
         }`;
         if (command.permission)
