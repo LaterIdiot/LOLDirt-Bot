@@ -4,6 +4,7 @@ const { requirement, color } = require("../../config.json");
 const Discord = require("discord.js");
 const { Client } = require("@zikeji/hypixel");
 const hypixel = new Client(hypixelAPIKey);
+const numFormat = (num) => Intl.NumberFormat("en-US").format(num);
 
 // finds skywars level
 function findSkywarsLevel(xp) {
@@ -128,7 +129,7 @@ function sb(skyblockProfilesList, playerData) {
                         : 0)
             ),
             findSkillLevel(profile.experience_skill_mining || 0, 60),
-            findSkillLevel(profile.experience_skill_combat || 0, 50),
+            findSkillLevel(profile.experience_skill_combat || 0, 60),
             findSkillLevel(profile.experience_skill_foraging || 0, 50),
             findSkillLevel(profile.experience_skill_fishing || 0, 50),
             findSkillLevel(profile.experience_skill_enchanting || 0, 60),
@@ -612,37 +613,99 @@ async function command(message, sentMsg, args, embedTitle) {
 
     const strings = {
         major: {
-            bedwars: `Bedwars:\n    Level: ${playerStats.major.bedwars.level}\n    Final K/D: ${playerStats.major.bedwars.FKDR}`,
-            skywars: `Skywars:\n    Level: ${playerStats.major.skywars.level}\n    Wins: ${playerStats.major.skywars.wins}\n    K/D: ${playerStats.major.skywars.KDR}`,
-            skyblock: `SkyBlock:\n    Slayer XP: ${playerStats.major.skyblock.slayersXp}\n    Skill Average: ${playerStats.major.skyblock.skillAverage}`,
-            duels: `Duels:\n    Wins: ${playerStats.major.duels.wins}\n    W/L: ${playerStats.major.duels.WLR}\n    Kills: ${playerStats.major.duels.kills}`,
-            UHC: `UHC:\n    Wins: ${playerStats.major.UHC.wins}\n    K/D: ${playerStats.major.UHC.KDR}`,
-            blitz: `Blitz Survival Games:\n    Wins: ${playerStats.major.blitz.wins}\n    Kills: ${playerStats.major.blitz.kills}`,
-            tnt: `TNT Games:\n    Wins: ${playerStats.major.tnt.wins}`,
-            buildBattle: `Build Battle:\n    Score: ${playerStats.major.buildBattle.score}`,
-            classic: `Classic Games:\n    Wins: ${playerStats.major.classic.wins}`,
-            arcade: `Arcade Games:\n    Wins: ${playerStats.major.arcade.wins}`,
-            copsAndCrims: `Cops and Crims:\n    Wins: ${playerStats.major.copsAndCrims.wins}\n    Kills: ${playerStats.major.copsAndCrims.kills}`,
-            murderMystery: `Murder Mystery:\n    Wins: ${playerStats.major.murderMystery.wins}\n    Kills: ${playerStats.major.murderMystery.kills}`,
-            hypixelNetwork: `Hypixel Network:\n    Level: ${playerStats.major.hypixelNetwork.level}\n    Acheivement Points: ${playerStats.major.hypixelNetwork.achievementPoints}\n    Karma: ${playerStats.major.hypixelNetwork.karma}`,
-            pit: `The Pit:\n    Prestige: ${playerStats.major.pit.prestige}`,
+            bedwars: `Bedwars:\n    Level: ${numFormat(
+                playerStats.major.bedwars.level
+            )}\n    Final K/D: ${numFormat(playerStats.major.bedwars.FKDR)}`,
+            skywars: `Skywars:\n    Level: ${numFormat(
+                playerStats.major.skywars.level
+            )}\n    Wins: ${numFormat(
+                playerStats.major.skywars.wins
+            )}\n    K/D: ${numFormat(playerStats.major.skywars.KDR)}`,
+            skyblock: `SkyBlock:\n    Slayer XP: ${numFormat(
+                playerStats.major.skyblock.slayersXp
+            )}\n    Skill Average: ${numFormat(
+                playerStats.major.skyblock.skillAverage
+            )}`,
+            duels: `Duels:\n    Wins: ${numFormat(
+                playerStats.major.duels.wins
+            )}\n    W/L: ${numFormat(
+                playerStats.major.duels.WLR
+            )}\n    Kills: ${numFormat(playerStats.major.duels.kills)}`,
+            UHC: `UHC:\n    Wins: ${numFormat(
+                playerStats.major.UHC.wins
+            )}\n    K/D: ${numFormat(playerStats.major.UHC.KDR)}`,
+            blitz: `Blitz Survival Games:\n    Wins: ${numFormat(
+                playerStats.major.blitz.wins
+            )}\n    Kills: ${numFormat(playerStats.major.blitz.kills)}`,
+            tnt: `TNT Games:\n    Wins: ${numFormat(
+                playerStats.major.tnt.wins
+            )}`,
+            buildBattle: `Build Battle:\n    Score: ${numFormat(
+                playerStats.major.buildBattle.score
+            )}`,
+            classic: `Classic Games:\n    Wins: ${numFormat(
+                playerStats.major.classic.wins
+            )}`,
+            arcade: `Arcade Games:\n    Wins: ${numFormat(
+                playerStats.major.arcade.wins
+            )}`,
+            copsAndCrims: `Cops and Crims:\n    Wins: ${numFormat(
+                playerStats.major.copsAndCrims.wins
+            )}\n    Kills: ${numFormat(playerStats.major.copsAndCrims.kills)}`,
+            murderMystery: `Murder Mystery:\n    Wins: ${numFormat(
+                playerStats.major.murderMystery.wins
+            )}\n    Kills: ${numFormat(playerStats.major.murderMystery.kills)}`,
+            hypixelNetwork: `Hypixel Network:\n    Level: ${numFormat(
+                playerStats.major.hypixelNetwork.level
+            )}\n    Acheivement Points: ${numFormat(
+                playerStats.major.hypixelNetwork.achievementPoints
+            )}\n    Karma: ${numFormat(
+                playerStats.major.hypixelNetwork.karma
+            )}`,
+            pit: `The Pit:\n    Prestige: ${numFormat(
+                playerStats.major.pit.prestige
+            )}`,
         },
         minor: {
-            bedwarsFKDR: `Bedwars Final K/D: ${playerStats.minor.bedwarsFKDR}`,
-            bedwarsWins: `Bedwars Wins: ${playerStats.minor.bedwarsWins}`,
-            bedwarsBBLR: `Bedwars BBLR: ${playerStats.minor.bedwarsBBLR}`,
-            bedwarsWLR: `Bedwars W/L: ${playerStats.minor.bedwarsWLR}`,
-            bedwarsLevel: `Bedwars Level: ${playerStats.minor.bedwarsLevel}`,
-            skywarsKDR: `Skywars K/D: ${playerStats.minor.skywarsKDR}`,
-            skywarsWins: `Skywars Wins: ${playerStats.minor.skywarsWins}`,
-            skywarsKills: `Skywars Kills: ${playerStats.minor.skywarsKills}`,
-            skywarsWLR: `Skywars W/L: ${playerStats.minor.skywarsWLR}`,
-            skywarsLevel: `Skywars Level: ${playerStats.minor.skywarsLevel}`,
-            duelsWLR: `Duels W/L: ${playerStats.minor.duelsWLR}`,
-            duelsKDR: `Duels K/D: ${playerStats.minor.duelsKDR}`,
-            duelsWins: `Duels Wins: ${playerStats.minor.duelsWins}`,
-            networkLevel: `Hypixel Network Level: ${playerStats.minor.networkLevel}`,
-            achievementPoints: `Achievement Points: ${playerStats.minor.achievementPoints}`,
+            bedwarsFKDR: `Bedwars Final K/D: ${numFormat(
+                playerStats.minor.bedwarsFKDR
+            )}`,
+            bedwarsWins: `Bedwars Wins: ${numFormat(
+                playerStats.minor.bedwarsWins
+            )}`,
+            bedwarsBBLR: `Bedwars BBLR: ${numFormat(
+                playerStats.minor.bedwarsBBLR
+            )}`,
+            bedwarsWLR: `Bedwars W/L: ${numFormat(
+                playerStats.minor.bedwarsWLR
+            )}`,
+            bedwarsLevel: `Bedwars Level: ${numFormat(
+                playerStats.minor.bedwarsLevel
+            )}`,
+            skywarsKDR: `Skywars K/D: ${numFormat(
+                playerStats.minor.skywarsKDR
+            )}`,
+            skywarsWins: `Skywars Wins: ${numFormat(
+                playerStats.minor.skywarsWins
+            )}`,
+            skywarsKills: `Skywars Kills: ${numFormat(
+                playerStats.minor.skywarsKills
+            )}`,
+            skywarsWLR: `Skywars W/L: ${numFormat(
+                playerStats.minor.skywarsWLR
+            )}`,
+            skywarsLevel: `Skywars Level: ${numFormat(
+                playerStats.minor.skywarsLevel
+            )}`,
+            duelsWLR: `Duels W/L: ${numFormat(playerStats.minor.duelsWLR)}`,
+            duelsKDR: `Duels K/D: ${numFormat(playerStats.minor.duelsKDR)}`,
+            duelsWins: `Duels Wins: ${numFormat(playerStats.minor.duelsWins)}`,
+            networkLevel: `Hypixel Network Level: ${numFormat(
+                playerStats.minor.networkLevel
+            )}`,
+            achievementPoints: `Achievement Points: ${numFormat(
+                playerStats.minor.achievementPoints
+            )}`,
         },
     };
 
@@ -686,7 +749,21 @@ async function command(message, sentMsg, args, embedTitle) {
         }
     }
 
-    const basicResultStr = `${requirementMet.basic.networkLevel}Hypixel Network Level: ${playerStats.basic.networkLevel}\n${requirementMet.basic.bedwarsLevel}Bedwars Level: ${playerStats.basic.bedwarsLevel}\n${requirementMet.basic.bedwarsFKDR}Bedwars FKDR: ${playerStats.basic.bedwarsFKDR}\n${requirementMet.basic.skywarsLevel}Skywars Level: ${playerStats.basic.skywarsLevel}\n${requirementMet.basic.skywarsKDR}Skywars KDR: ${playerStats.basic.skywarsKDR}\n${requirementMet.basic.duelsWins}Duels Wins: ${playerStats.basic.duelsWins}\n${requirementMet.basic.achievementPoints}Achievement Points: ${playerStats.basic.achievementPoints}`;
+    const basicResultStr = `${
+        requirementMet.basic.networkLevel
+    }Hypixel Network Level: ${numFormat(playerStats.basic.networkLevel)}\n${
+        requirementMet.basic.bedwarsLevel
+    }Bedwars Level: ${numFormat(playerStats.basic.bedwarsLevel)}\n${
+        requirementMet.basic.bedwarsFKDR
+    }Bedwars FKDR: ${numFormat(playerStats.basic.bedwarsFKDR)}\n${
+        requirementMet.basic.skywarsLevel
+    }Skywars Level: ${numFormat(playerStats.basic.skywarsLevel)}\n${
+        requirementMet.basic.skywarsKDR
+    }Skywars KDR: ${numFormat(playerStats.basic.skywarsKDR)}\n${
+        requirementMet.basic.duelsWins
+    }Duels Wins: ${numFormat(playerStats.basic.duelsWins)}\n${
+        requirementMet.basic.achievementPoints
+    }Achievement Points: ${numFormat(playerStats.basic.achievementPoints)}`;
 
     const totalRequirementsMet = {
         basic: Object.values(requirementMet.basic).includes("❌")

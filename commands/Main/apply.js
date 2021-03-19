@@ -193,7 +193,7 @@ module.exports = {
                 }
 
                 let application = new Discord.MessageEmbed({
-                    color: color.purple,
+                    color: color.darkBlue,
                     title: `Applicant - ${playerData.name}`,
                     description: `Discord: ${message.author}`,
                     fields: [

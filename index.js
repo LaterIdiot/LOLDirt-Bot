@@ -78,7 +78,6 @@ client.once("ready", async () => {
         .toArray()
         .catch((err) => console.error(err));
     const guilds = client.guilds.cache.array();
-    const memebersIDArr = [];
 
     for (const x of verifiedUsers) {
         let exist = false;

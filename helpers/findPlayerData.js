@@ -13,7 +13,7 @@ module.exports = async (username, uuid) => {
                 return null;
             });
 
-        return playerData[0].name;
+        return playerData[playerData.length - 1].name;
     } else {
         const playerData = await fetch(
             `https://api.mojang.com/users/profiles/minecraft/${username}`
@@ -26,7 +26,9 @@ module.exports = async (username, uuid) => {
                 return null;
             });
 
-        if (playerData.id || playerData.name) {
+        if (!playerData) {
+            return null;
+        } else if (playerData.id || playerData.name) {
             return playerData;
         } else {
             return null;

@@ -24,6 +24,11 @@ module.exports = async (message, client, db, maintenance) => {
         );
     }
 
+    // Manages whether the command is meant to be called in dm or not
+    if (command.guildOnly && message.channel.type === "dm") {
+        return message.reply("I can't execute that command inside DMs!");
+    }
+
     // Manages command permissions
     if (command.permission) {
         if (
@@ -37,11 +42,6 @@ module.exports = async (message, client, db, maintenance) => {
         ) {
             return message.reply("Sorry, but only for server admins!");
         }
-    }
-
-    // Manages whether the command is meant to be called in dm or not
-    if (command.guildOnly && message.channel.type === "dm") {
-        return message.reply("I can't execute that command inside DMs!");
     }
 
     if (!args.length && command.allowVerified) {
