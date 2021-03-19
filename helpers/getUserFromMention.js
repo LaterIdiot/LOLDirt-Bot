@@ -8,6 +8,6 @@ module.exports = (mention, message) => {
             mention = mention.slice(1);
         }
 
-        return message.guild.members.cache.get(mention).user;
+        return message.guild.members.cache.get(mention);
     }
 };

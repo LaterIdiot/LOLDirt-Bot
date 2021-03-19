@@ -10,6 +10,7 @@ module.exports = {
     usage: "<mention> [note(s)]",
     permission: "Server Admin",
     async execute(message, args, db, mentionedUser) {
+        mentionedUser = mentionedUser.user;
         const applicants = await db.collection("applicants");
 
         const query = { discordID: mentionedUser.id };
