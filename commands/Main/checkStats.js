@@ -166,13 +166,14 @@ function sb(skyblockProfilesList, playerData) {
 }
 
 async function command(message, sentMsg, args, embedTitle) {
-    const playerData = await findPlayerData(args.shift());
+    const username = args.shift();
+    const playerData = await findPlayerData(username);
 
     if (!playerData) {
         const playerFailureEmbed = new Discord.MessageEmbed({
             color: color.red,
             title: "Failure!",
-            description: "Player does not exist or the Mojang API is down!",
+            description: `\`${username}\` does not exist or the Mojang API is down!`,
             timestamp: new Date(),
             footer: {
                 text: message.author.username,
@@ -183,16 +184,13 @@ async function command(message, sentMsg, args, embedTitle) {
         return sentMsg.edit(playerFailureEmbed);
     }
 
-    const player = await hypixel.player.uuid(playerData.id).catch(() => {
-        return null;
-    });
+    const player = await hypixel.player.uuid(playerData.id).catch(() => null);
 
     if (!player) {
         const playerFailureEmbed = new Discord.MessageEmbed({
             color: color.red,
             title: "Failure!",
-            description:
-                "Player does not exist on the Hypixel Network or the Hypixel API is down!",
+            description: `\`${username}\` does not exist on the Hypixel Network or the Hypixel API is down!`,
             timestamp: new Date(),
             footer: {
                 text: message.author.username,
@@ -827,7 +825,7 @@ module.exports = {
     description:
         "Checks your stats to see if you meet minimum requirements to get into our guild.",
     args: true,
-    usage: "<username>",
+    usage: "<minecraft-username>",
     guildOnly: false,
     cooldown: 5,
     allowVerified: true,

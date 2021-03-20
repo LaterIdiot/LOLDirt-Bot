@@ -9,7 +9,7 @@ module.exports = {
     name: "verify",
     description:
         "Verifies the user to it's Minecraft account, which allows you to not require to write your minecraft username in commands. Make sure that you added your Discord tag in your social media links on the Hypixel Network, in order for this command to work properly.",
-    usage: "<your_minecraft_username>",
+    usage: "<your-minecraft-username>",
     args: true,
     guildOnly: true,
     cooldown: 10,
@@ -35,7 +35,7 @@ module.exports = {
 
         const player = await hypixel.player
             .uuid(playerData.id)
-            .catch((err) => console.error(err));
+            .catch(console.error);
 
         if (!player) {
             const playerFailureEmbed = new Discord.MessageEmbed({
@@ -76,7 +76,7 @@ module.exports = {
             const query = { discordID: message.author.id };
             const verifiedUser = await verified
                 .findOne(query)
-                .catch((err) => console.error(err));
+                .catch(console.error);
 
             const verificationSuccessEmbed = new Discord.MessageEmbed({
                 color: color.green,
@@ -97,9 +97,7 @@ module.exports = {
                     discordID: message.author.id,
                 };
 
-                await verified
-                    .insertOne(values)
-                    .catch((err) => console.error(err));
+                await verified.insertOne(values).catch(console.error);
             } else {
                 // have different message output for this instance
 
@@ -120,7 +118,7 @@ module.exports = {
 
                     await verified
                         .updateOne(query, newvalues)
-                        .catch((err) => console.error(err));
+                        .catch(console.error);
                 }
             }
 

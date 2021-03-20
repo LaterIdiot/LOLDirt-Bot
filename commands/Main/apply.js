@@ -10,7 +10,7 @@ module.exports = {
     name: "apply",
     description: "Starts an application to apply for the guild.",
     args: true,
-    usage: "<your_minecraft_username>",
+    usage: "<your-minecraft-username>",
     guildOnly: true,
     allowVerified: true,
     cooldown: "dynamic",
@@ -32,7 +32,7 @@ module.exports = {
         const query = { discordID: message.author.id };
         let applicantsData = await applicants
             .findOne(query)
-            .catch((err) => console.error(err));
+            .catch(console.error);
 
         if (applicantsData) {
             const now = Date.now();
@@ -46,35 +46,47 @@ module.exports = {
             }
         }
 
-        const guild = await hypixel.guild.name("loldirt").catch(() => {
-            return null;
-        });
-        const uuid = await findPlayerData(username);
+        const playerData = await findPlayerData(username);
+
+        if (!playerData) {
+            const playerFailureEmbed = new Discord.MessageEmbed({
+                color: color.red,
+                title: "Failure!",
+                description: `\`${username}\` does not exist or the Mojang API is down!`,
+                timestamp: new Date(),
+                footer: {
+                    text: message.author.username,
+                    icon_url: message.author.avatarURL({
+                        dynamic: true,
+                    }),
+                },
+            });
+
+            return sentMsg.edit(playerFailureEmbed);
+        }
+
+        const guild = await hypixel.guild.name("loldirt").catch(() => null);
 
         if (guild) {
-            if (guild.members) {
-                for (let x of guild.members) {
-                    if (x.uuid.includes(uuid.id)) {
-                        const alreadyFailureEmbed = new Discord.MessageEmbed({
-                            color: color.red,
-                            title: "Failure!",
-                            description:
-                                "It looks like you are already in the guild!",
-                            timestamp: new Date(),
-                            footer: {
-                                text: message.author.username,
-                                icon_url: message.author.avatarURL({
-                                    dynamic: true,
-                                }),
-                            },
-                        });
+            const guildMember = guild.members.find(
+                (member) => member.uuid === playerData.id
+            );
 
-                        return sentMsg.edit(
-                            message.author,
-                            alreadyFailureEmbed
-                        );
-                    }
-                }
+            if (guildMember) {
+                const inGuildFailureEmbed = new Discord.MessageEmbed({
+                    color: color.red,
+                    title: "Failure!",
+                    description: "It looks like you are already in the guild!",
+                    timestamp: new Date(),
+                    footer: {
+                        text: message.author.username,
+                        icon_url: message.author.avatarURL({
+                            dynamic: true,
+                        }),
+                    },
+                });
+
+                return sentMsg.edit(message.author, inGuildFailureEmbed);
             }
         } else {
             const apiNoteEmbed = new Discord.MessageEmbed({

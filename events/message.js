@@ -47,9 +47,7 @@ module.exports = async (message, client, db, maintenance) => {
     if (!args.length && command.allowVerified) {
         const verified = await db.collection("verified");
         const query = { discordID: message.author.id };
-        const result = await verified
-            .findOne(query)
-            .catch((err) => console.error(err));
+        const result = await verified.findOne(query).catch(console.error);
 
         if (result) args.push(result.username);
     }

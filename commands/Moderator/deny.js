@@ -16,7 +16,7 @@ module.exports = {
         const query = { discordID: mentionedUser.id };
         let applicantsData = await applicants
             .findOne(query)
-            .catch((err) => console.error(err));
+            .catch(console.error);
 
         if (
             applicantsData &&
@@ -73,9 +73,7 @@ module.exports = {
                 $set: { timestamp: Date.now(), type: "denied" },
             };
 
-            await applicants
-                .updateOne(query, newvalues)
-                .catch((err) => console.error(err));
+            await applicants.updateOne(query, newvalues).catch(console.error);
 
             return message.channel.send(message.author, sentSuccessEmbed);
         } else {
