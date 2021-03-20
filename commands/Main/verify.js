@@ -100,6 +100,15 @@ module.exports = {
                 await verified
                     .insertOne(values)
                     .catch((err) => console.error(err));
+
+                const verifiedRole = await message.guild.roles.cache.find(
+                    (r) => r.name === "✔ Verified"
+                );
+
+                if (!message.member.roles.cache.has(verifiedRole.id))
+                    await message.member.roles
+                        .add(verifiedRole, "Verified")
+                        .catch(console.error);
             } else {
                 // have different message output for this instance
 
