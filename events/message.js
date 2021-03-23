@@ -1,6 +1,6 @@
 require("dotenv").config();
 const Discord = require("discord.js");
-const { prefix, change } = require("../index");
+const { prefix, changeMaintenance } = require("../index");
 const getUserFromMention = require("../helpers/getUserFromMention");
 const { color } = require("../config.json");
 
@@ -146,7 +146,7 @@ module.exports = async (message, client, db, maintenance) => {
     try {
         if (command.name === "maintenance") {
             maintenance = command.execute(message, args, db);
-            change(maintenance);
+            changeMaintenance(maintenance);
 
             const query = { name: "maintenance" };
             const newvalues = { $set: { maintenance: maintenance } };
