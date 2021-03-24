@@ -31,5 +31,5 @@ module.exports = async (client) => {
     }
 
     glb();
-    setInterval(glb, 3600000);
+    setInterval(glb, 3600000 * 3);
 };
