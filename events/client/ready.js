@@ -1,4 +1,4 @@
-const { changeInvites } = require("../index");
+const { changeInvites } = require("../../index");
 
 module.exports = async (client, db) => {
     const verified = await db.collection("verified");
@@ -30,4 +30,10 @@ module.exports = async (client, db) => {
     }
 
     console.log("Ready!");
+
+    try {
+        require("../custom/timeEventsSetup")(client);
+    } catch (err) {
+        console.error(err);
+    }
 };

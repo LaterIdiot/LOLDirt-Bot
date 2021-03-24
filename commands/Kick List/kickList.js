@@ -2,7 +2,7 @@ const Discord = require("discord.js");
 const { hypixelAPIKey } = require("../../index");
 const { Client } = require("@zikeji/hypixel");
 const hypixel = new Client(hypixelAPIKey);
-const findPlayerData = require("../../helpers/findPlayerData");
+const findPlayerData = require("../../tools/findPlayerData");
 const { color, weeklyGxpRequirement } = require("../../config.json");
 const numFormat = (num) => Intl.NumberFormat("en-US").format(num);
 

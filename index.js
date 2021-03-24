@@ -72,11 +72,11 @@ client.commands.set("help", require("./commands/help"));
 
 // sends console log ones bot is ready
 client.once("ready", () => {
-    require("./events/ready")(client, db);
+    require("./events/client/ready")(client, db);
 });
 
 client.on("message", (msg) => {
-    require("./events/message")(msg, client, db, maintenance);
+    require("./events/client/message")(msg, client, db, maintenance);
 });
 
 client.on("inviteCreate", (invite) => {
@@ -84,11 +84,11 @@ client.on("inviteCreate", (invite) => {
 });
 
 client.on("guildMemberAdd", (member) => {
-    require("./events/guildMemberAdd")(member, invites);
+    require("./events/client/guildMemberAdd")(member, invites);
 });
 
 client.on("guildMemberRemove", (member) => {
-    require("./events/guildMemberRemove")(member, db);
+    require("./events/client/guildMemberRemove")(member, db);
 });
 
 function login() {

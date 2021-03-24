@@ -3,7 +3,7 @@ const { hypixelAPIKey } = require("../../index");
 const { Client } = require("@zikeji/hypixel");
 const hypixel = new Client(hypixelAPIKey);
 const checkStats = require("./checkStats");
-const findPlayerData = require("../../helpers/findPlayerData");
+const findPlayerData = require("../../tools/findPlayerData");
 const { questions, color, applyCooldown } = require("../../config.json");
 
 module.exports = {
@@ -244,7 +244,11 @@ module.exports = {
                 });
 
                 await message.guild.channels.cache
-                    .find((i) => i.name === "ℹ-guild-application-log")
+                    .find(
+                        (i) =>
+                            i.name === "ℹ-guild-application-log" &&
+                            i.type === "text"
+                    )
                     .send(application);
 
                 const successEmbed = new Discord.MessageEmbed({
@@ -284,7 +288,7 @@ module.exports = {
                     },
                 });
 
-                return message.channel.send(message.author, failureEmbed);
+                return sentMsg.edit(failureEmbed);
             }
         } else {
             if (applicantsData.username !== username) {

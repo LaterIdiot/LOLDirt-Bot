@@ -22,6 +22,8 @@
     "homepage": "https://github.com/LaterIdiot/LOLDirt-Bot#readme",
     "dependencies": {
         "@zikeji/hypixel": "^2.1.1",
+        "axios": "^0.21.1",
+        "cheerio": "^1.0.0-rc.5",
         "discord.js": "^12.5.1",
         "dotenv": "^8.2.0",
         "mongodb": "^3.6.3"

@@ -1,8 +1,8 @@
 require("dotenv").config();
 const Discord = require("discord.js");
-const { prefix, changeMaintenance } = require("../index");
-const getUserFromMention = require("../helpers/getUserFromMention");
-const { color } = require("../config.json");
+const { prefix, changeMaintenance } = require("../../index");
+const getUserFromMention = require("../../tools/getUserFromMention");
+const { color } = require("../../config.json");
 
 module.exports = async (message, client, db, maintenance) => {
     if (!message.content.startsWith(prefix) || message.author.bot) return;

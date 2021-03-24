@@ -2,7 +2,7 @@ const { hypixelAPIKey } = require("../../index");
 const { Client } = require("@zikeji/hypixel");
 const hypixel = new Client(hypixelAPIKey);
 const Discord = require("discord.js");
-const findPlayerData = require("../../helpers/findPlayerData");
+const findPlayerData = require("../../tools/findPlayerData");
 const { color } = require("../../config.json");
 
 module.exports = {
