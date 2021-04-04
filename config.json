@@ -1,5 +1,14 @@
 {
     "weeklyGxpRequirement": 135000,
+    "server": {
+        "name": "loldirt",
+        "applicationLog": "ℹ-guild-application-log",
+        "inviteLog": "invite-log",
+        "guildLbLog": "ℹ-guild-leaderboard"
+    },
+    "mcGuild": {
+        "name": "loldirt"
+    },
     "applyCooldown": 604800,
     "questions": [
         {
@@ -108,11 +117,11 @@
         }
     },
     "color": {
-        "red": "#ff0000",
-        "green": "#32a852",
-        "blue": "#488bf7",
-        "yellow": "#fcdb03",
-        "purple": "#8332d9",
-        "orange": "#fcba03"
+        "red": "#F04747",
+        "green": "#43B581",
+        "blue": "#7289DA",
+        "yellow": "#FAA61A",
+        "purple": "#9C84EF",
+        "orange": "#F57731"
     }
 }

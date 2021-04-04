@@ -1,5 +1,5 @@
 const Discord = require("discord.js");
-const { color } = require("../../config.json");
+const { color, server } = require("../../config.json");
 const { changeInvites } = require("../../index");
 
 module.exports = async (member, invites) => {
@@ -39,7 +39,7 @@ module.exports = async (member, invites) => {
         });
 
         return member.guild.channels.cache
-            .find((i) => i.name === "invite-log" && i.type === "text")
+            .find((i) => i.name === server.inviteLog && i.type === "text")
             .send(logEmbed);
     } catch (err) {
         console.error(err);

@@ -4,7 +4,12 @@ const { Client } = require("@zikeji/hypixel");
 const hypixel = new Client(hypixelAPIKey);
 const checkStats = require("./checkStats");
 const findPlayerData = require("../../tools/findPlayerData");
-const { questions, color, applyCooldown } = require("../../config.json");
+const {
+    questions,
+    color,
+    applyCooldown,
+    server,
+} = require("../../config.json");
 
 module.exports = {
     name: "apply",
@@ -65,7 +70,7 @@ module.exports = {
             return sentMsg.edit(playerFailureEmbed);
         }
 
-        const guild = await hypixel.guild.name("loldirt").catch(() => null);
+        const guild = await hypixel.guild.name(server.name).catch(() => null);
 
         if (guild) {
             const guildMember = guild.members.find(
@@ -246,7 +251,7 @@ module.exports = {
                 await message.guild.channels.cache
                     .find(
                         (i) =>
-                            i.name === "ℹ-guild-application-log" &&
+                            i.name === server.applicationLog &&
                             i.type === "text"
                     )
                     .send(application);

@@ -3,7 +3,7 @@ const { hypixelAPIKey } = require("../../index");
 const { Client } = require("@zikeji/hypixel");
 const hypixel = new Client(hypixelAPIKey);
 const findPlayerData = require("../../tools/findPlayerData");
-const { color, weeklyGxpRequirement } = require("../../config.json");
+const { color, weeklyGxpRequirement, mcGuild } = require("../../config.json");
 const numFormat = (num) => Intl.NumberFormat("en-US").format(num);
 
 module.exports = {
@@ -34,7 +34,7 @@ module.exports = {
             .then((res) => res.map((i) => i.uuid))
             .catch(console.error);
 
-        const guild = await hypixel.guild.name("loldirt").catch(() => {
+        const guild = await hypixel.guild.name(mcGuild.name).catch(() => {
             return null;
         });
 

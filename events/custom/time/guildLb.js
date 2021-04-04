@@ -1,6 +1,6 @@
 const guildLbData = require("../../../tools/guildLbData");
 const Discord = require("discord.js");
-const { color } = require("../../../config.json");
+const { color, server } = require("../../../config.json");
 
 module.exports = async (client) => {
     function glb() {
@@ -8,7 +8,7 @@ module.exports = async (client) => {
             const lb = await guildLbData();
             let lbStr = "";
             lb.forEach((i) => {
-                if (i.name === "loldirt") {
+                if (i.name === server.name) {
                     lbStr += `\n**\`${i.position}. ${i.name} – ${i.level} (${i.exp})\`**`;
                 } else {
                     lbStr += `\n\`${i.position}. ${i.name} – ${i.level} (${i.exp})\``;
@@ -23,9 +23,7 @@ module.exports = async (client) => {
 
             const guild = await client.guilds.cache.first();
             return guild.channels.cache
-                .find(
-                    (i) => i.name === "ℹ-guild-leaderboard" && i.type === "text"
-                )
+                .find((i) => i.name === server.guildLbLog && i.type === "text")
                 .send(lbEmbed);
         })();
     }

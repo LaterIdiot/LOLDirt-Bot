@@ -3,7 +3,7 @@ const { hypixelAPIKey } = require("../../index");
 const { Client } = require("@zikeji/hypixel");
 const hypixel = new Client(hypixelAPIKey);
 const findPlayerData = require("../../tools/findPlayerData");
-const { color } = require("../../config.json");
+const { color, mcGuild } = require("../../config.json");
 
 module.exports = {
     name: "ignore",
@@ -112,7 +112,9 @@ module.exports = {
                 return sentMsg.edit(playerFailureEmbed);
             }
 
-            const guild = await hypixel.guild.name("loldirt").catch(() => null);
+            const guild = await hypixel.guild
+                .name(mcGuild.name)
+                .catch(() => null);
 
             if (guild) {
                 const guildMember = guild.members.find(

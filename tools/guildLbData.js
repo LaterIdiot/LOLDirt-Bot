@@ -1,5 +1,6 @@
 const axios = require("axios");
 const cheerio = require("cheerio");
+const { mcGuild } = require("../config.json");
 
 module.exports = async () => {
     const html = await axios
@@ -20,7 +21,7 @@ module.exports = async () => {
         });
     });
 
-    const loldirtIndex = lb.findIndex((i) => i.name === "loldirt");
+    const loldirtIndex = lb.findIndex((i) => i.name === mcGuild.name);
     const start = loldirtIndex - 2 < 0 ? 0 : loldirtIndex - 2;
     const end =
         loldirtIndex - 2 < 0
