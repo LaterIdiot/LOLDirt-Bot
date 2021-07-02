@@ -28,7 +28,7 @@ module.exports = async (member, invites) => {
         // ];
 
         const logEmbed = new Discord.MessageEmbed({
-            color: color.orange,
+            color: color.blue,
             title: "Someone Joined our Server!",
             description: `${member.user} joined using invite code \`${invite.code}\` from ${invite.inviter}. Invite was used \`${invite.uses}\` times since its creation!`,
             timestamp: new Date(),
