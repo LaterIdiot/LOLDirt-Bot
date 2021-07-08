@@ -20,7 +20,7 @@
             "cooldown": 100
         },
         {
-            "question": "What are some quality traits about you, and have you done anything for us to insure your a good and non - toxic person?",
+            "question": "What are some quality traits about you, and have you done anything for us to insure you're a good and non - toxic person?",
             "cooldown": 300
         },
         {
@@ -102,12 +102,12 @@
             "bedwarsFKDR": 5,
             "bedwarsWins": 800,
             "bedwarsBBLR": 2,
-            "bedwarsWLR": 20,
+            "bedwarsWLR": 2.5,
             "bedwarsLevel": 100,
             "skywarsKDR": 5,
             "skywarsWins": 850,
             "skywarsKills": 1500,
-            "skywarsWLR": 2,
+            "skywarsWLR": 1,
             "skywarsLevel": 10,
             "duelsWLR": 10,
             "duelsKDR": 7,
