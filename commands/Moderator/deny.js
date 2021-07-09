@@ -8,7 +8,7 @@ module.exports = {
     guildOnly: true,
     mention: true,
     usage: "<mention> [note(s)]",
-    permission: "Moderator",
+    permission: "Server Admin",
     async execute(message, args, db, mentionedUser) {
         mentionedUser = mentionedUser.user;
         const applicants = await db.collection("applicants");
